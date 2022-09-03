@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+    <style>
+        .active { background: yellow }
+    </style>
+    {{ header | safe }}
+</head>
+<body>
+    <div>
+        <a href="/" class="{{ 'active' if '/' == page.url }}">Home</a>
+        <a href="/README" class="{{ 'active' if '/README/' == page.url }}">README</a>
+    </div>
+    {{ content | safe }}
+</body>
+</html>
