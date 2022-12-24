@@ -1,2 +1,3 @@
-module Square =
-    let square x: x * x
+module Square
+
+let square x = x * x
