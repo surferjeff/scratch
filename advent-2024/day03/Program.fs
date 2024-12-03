@@ -17,7 +17,6 @@ let part2 =
     let mutable doing = true
     let mutable total = 0
     for m in rx.Matches(text) do 
-        printfn "%s" (m.Groups[0].Value)
         if m.Groups["do"].Success then
             doing <- true
         elif m.Groups["dont"].Success then
