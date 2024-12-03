@@ -13,8 +13,8 @@ let numbersAreSafe numbers =
     for b in numbers do
         match isSafe, a with
         | false, _ -> ()
-        | _, None -> a <- Some b
-        | _, Some av ->
+        | true, None -> a <- Some b
+        | true, Some av ->
             let incr = increasing |> Option.defaultValue (av < b)
             if isSafeStep incr av b then
                 increasing <- Some incr
