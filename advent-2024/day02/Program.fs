@@ -38,14 +38,14 @@ let part2 =
         let words = line.Split(' ', System.StringSplitOptions.RemoveEmptyEntries)
         let numbers = Seq.map int words |> ResizeArray
         let length = Seq.length numbers
-        let mutable isSafe = false
+        let mutable foundSafe = false
         for i in seq { 0 .. length-1} do
-            if not isSafe then
+            if not foundSafe then
                 let nums = ResizeArray(numbers)
                 nums.RemoveAt(i)
                 if numbersAreSafe nums then
-                    isSafe <- true
-        if isSafe then 1 else 0
+                    foundSafe <- true
+        if foundSafe then 1 else 0
     )
 
 printfn "part2: %d" part2
