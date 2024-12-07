@@ -46,21 +46,18 @@ let walk (lines: char array array) =
             else
                 c  // Replace space with footprint
 
+        lines[row][col] <- newFootPrint
+        let nextRow, nextCol = row + i, col + j
         if footPrint = newFootPrint then
             InfiniteLoop
+        elif nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols then
+            Escaped
+        elif lines[nextRow][nextCol] = '#' then
+            // Turn right and continue
+            loop (turnRight step) (row, col)
         else
-            lines[row][col] <- newFootPrint
-            let nextRow, nextCol = row + i, col + j
-
-            // Check bounds and obstacles
-            if nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols then
-                Escaped
-            elif lines[nextRow][nextCol] = '#' then
-                // Turn right and continue
-                loop (turnRight step) (row, col)
-            else
-                // Move to the next cell
-                loop step (nextRow, nextCol)
+            // Move to the next cell
+            loop step (nextRow, nextCol)
 
     loop (-1, 0, 'a') startPos
 
