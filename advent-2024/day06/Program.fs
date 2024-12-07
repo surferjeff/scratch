@@ -24,7 +24,7 @@ type WalkResult =
 // Constants for footprints
 let pathMask = uint8 0b01100000
 
-let nextStep (step: int * int * char) =
+let turnRight (step: int * int * char) =
     match step with
     | (-1, 0, 'a') -> (0, 1, 'b')
     | (0, 1, 'b') -> (1, 0, 'd')
@@ -57,7 +57,7 @@ let walk (lines: char array array) =
                 Escaped
             elif lines[nextRow][nextCol] = '#' then
                 // Turn right and continue
-                loop (nextStep step) (row, col)
+                loop (turnRight step) (row, col)
             else
                 // Move to the next cell
                 loop step (nextRow, nextCol)
