@@ -10,7 +10,7 @@ let findStartPosition input =
         | i when i >= 0 -> Some (row, i)
         | _ -> None)
     |> Array.tryPick id
-    |> Option.defaultValue (-1, -1)
+    |> Option.get
 
 let startPos = findStartPosition input
 
