@@ -14,6 +14,12 @@ let array2DtoSeq arr = seq {
             yield Array2D.get arr i j
 }
 
+let enumerateNeighbors arr2d i j =
+    let inBounds (i, j) =
+        i >= 0 && i < (Array2D.length1 arr2d) && j >= 0 && j < (Array2D.length2 arr2d)
+    [(i - 1, j); (i + 1, j); (i, j - 1); (i, j + 1)]
+    |> List.filter inBounds
+
 
 let part1 (input: string array) =
     let r2 = arrayFromInput input
@@ -23,14 +29,10 @@ let part1 (input: string array) =
         else
             Set.empty)
 
-    let inBounds (i, j) =
-        i >= 0 && i < Array2D.length1 r2 && j >= 0 && j < Array2D.length2 r2
-
     let stepTrails trails step =
         r2 |> Array2D.mapi (fun i j n ->
             if n = step then
-                [(i - 1, j); (i + 1, j); (i, j - 1); (i, j + 1)]
-                |> List.filter inBounds
+                enumerateNeighbors trails i j
                 |> List.fold (fun aset (i, j) -> Set.union aset (Array2D.get trails i j)) Set.empty
             else
                 Set.empty)
@@ -52,14 +54,10 @@ let part2 (input: string array) =
         else
             0)
 
-    let inBounds (i, j) =
-        i >= 0 && i < Array2D.length1 r2 && j >= 0 && j < Array2D.length2 r2
-
     let stepTrails trails step =
         r2 |> Array2D.mapi (fun i j n ->
             if n = step then
-                [(i - 1, j); (i + 1, j); (i, j - 1); (i, j + 1)]
-                |> List.filter inBounds
+                enumerateNeighbors trails i j
                 |> List.fold (fun count (i, j) -> count + (Array2D.get trails i j)) 0
             else
                 0)
