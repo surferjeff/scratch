@@ -25,7 +25,7 @@ let part2 =
             elif doing then
                 true, (int m.Groups["a"].Value) * (int m.Groups["b"].Value)
             else
-                doing, total)
+                failwithf "Unexpected match %A" m)
             (true, 0)
 
     printfn "part2: %d" total
