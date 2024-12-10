@@ -8,6 +8,13 @@ let arrayFromInput (input: string array) =
     |>  array2D 
 
 
+let array2DtoSeq arr = seq {
+    for i in 0..Array2D.length1 arr - 1 do
+        for j in 0..Array2D.length2 arr - 1 do
+            yield Array2D.get arr i j
+}
+
+
 let part1 (input: string array) =
     let r2 = arrayFromInput input
     let trails = r2 |> Array2D.mapi (fun i j n ->
@@ -32,11 +39,7 @@ let part1 (input: string array) =
         { 1..9 }
         |> Seq.fold stepTrails trails
 
-    let mutable score = 0
-    for i in 0..Array2D.length1 trails - 1 do
-        for j in 0..Array2D.length2 trails - 1 do
-            score <- score + Set.count (Array2D.get trails i j)
-    score 
+    trails |> array2DtoSeq |> Seq.sumBy Set.count
 
 printfn "part1: %d" (part1 input)
 
@@ -65,10 +68,6 @@ let part2 (input: string array) =
         { 1..9 }
         |> Seq.fold stepTrails trails
 
-    let mutable score = 0
-    for i in 0..Array2D.length1 trails - 1 do
-        for j in 0..Array2D.length2 trails - 1 do
-            score <- score + Array2D.get trails i j
-    score 
+    trails |> array2DtoSeq |> Seq.sum
 
 printfn "part2: %d" (part2 input)
