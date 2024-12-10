@@ -48,7 +48,7 @@ printfn "part1: %d" (part1 input)
 
 let part2 (input: string array) =
     let r2 = arrayFromInput input
-    let trails = r2 |> Array2D.mapi (fun i j n ->
+    let trails = r2 |> Array2D.map (fun n ->
         if n = 0 then
             1
         else
