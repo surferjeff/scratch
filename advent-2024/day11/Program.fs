@@ -29,13 +29,11 @@ let blink (stones: StoneMap) _ =
 
 let part1 =
     let stones = input |> Seq.map (fun n -> (n, 1UL)) |> Map
-    { 1..25 }
-    |> Seq.fold blink stones
+    Seq.fold blink stones { 1..25 }
 
 printfn "part1: %d" (part1 |> Map.values |> Seq.sum)
 
 let part2 =
-    { 1..50 }
-    |> Seq.fold blink part1
+    Seq.fold blink part1 { 1..50 }
 
 printfn "part2: %d" (part2 |> Map.values |> Seq.sum)
