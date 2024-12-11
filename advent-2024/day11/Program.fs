@@ -4,7 +4,7 @@ let input = [| 0UL; 37551UL; 469UL; 63UL; 1UL; 791606UL; 2065UL; 9983586UL |]
 // Maps the number engraved on the stone to the number of times it appears in
 // the line.
 // Switching from an F# Map to a .NET Dictionary reducted the runtime from
-// 300 ms to 219 ms.
+// 300 ms to 170 ms.
 type StoneMap = Dictionary<uint64,uint64>
 
 let addStone stone count (stones: StoneMap) =
