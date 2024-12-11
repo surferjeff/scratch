@@ -10,7 +10,7 @@ let addStone (stone: uint64) (count: uint64) (stones: StoneMap) =
     | None -> Some count
     | Some n -> Some (n + count))
 
-let blink (stones: StoneMap) =
+let blink (stones: StoneMap) _ =
     stones
     |> Map.toSeq
     |> Seq.fold (fun newStones (stone, count) ->
@@ -28,18 +28,14 @@ let blink (stones: StoneMap) =
     ) Map.empty
 
 let part1 =
-    let stones =
-        input
-        |> Seq.map (fun n -> (n, 1UL))
-        |> Map
+    let stones = input |> Seq.map (fun n -> (n, 1UL)) |> Map
     { 1..25 }
-    |> Seq.fold (fun (stones: StoneMap) _ ->
-        blink stones) stones
+    |> Seq.fold blink stones
 
 printfn "part1: %d" (part1 |> Map.values |> Seq.sum)
 
 let part2 =
     { 1..50 }
-    |> Seq.fold (fun stones _ -> blink stones) part1
+    |> Seq.fold blink part1
 
 printfn "part2: %d" (part2 |> Map.values |> Seq.sum)
