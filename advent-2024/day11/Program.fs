@@ -33,7 +33,6 @@ let part1 =
 
 printfn "part1: %d" (part1 |> Map.values |> Seq.sum)
 
-let part2 =
-    Seq.fold blink part1 { 1..50 }
+let part2 = Seq.fold blink part1 { 1..50 }
 
 printfn "part2: %d" (part2 |> Map.values |> Seq.sum)
