@@ -7,7 +7,7 @@ fn add_stone(stone: u64, count: u64, stones: &mut HashMap<u64, u64>) {
 
 // Simulates a single blink operation.
 fn blink(stones: &HashMap<u64, u64>) -> HashMap<u64, u64> {
-    let mut new_stones = HashMap::new();
+    let mut new_stones = HashMap::with_capacity(stones.len() * 2);
 
     for (&stone, &count) in stones {
         if stone == 0 {
