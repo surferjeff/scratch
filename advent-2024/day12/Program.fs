@@ -52,17 +52,17 @@ let rec flood (grid: char[,]) i j accArea accFence =
                 (area, nfence :: fence)
         ) (1 + accArea, accFence)
 
-let part1 =
+let calculateCosts inputPath countFences =
     let grid =
-        File.ReadAllLines("test1.txt")
+        File.ReadAllLines(inputPath)
         |> inputToGrid
     allGridCoords grid
     |> Seq.map (fun (i, j) ->
         let (area, fence) = flood grid i j 0 []
-        area * (List.length fence))
+        area * (countFences fence))
     |> Seq.sum
 
-printf "part1: %d" part1
+printf "part1: %d" (calculateCosts "test1.txt" List.length)
     
 
 
