@@ -42,6 +42,7 @@ let fenceKey fence =
     else
         (fence.J, fence.I) 
 
+// Returns the total area and a list of Fences.
 let rec flood (grid: char[,]) i j accArea accFence =
     let c = Array2D.get grid i j
     if c >= 'a' then
