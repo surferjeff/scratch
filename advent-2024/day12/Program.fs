@@ -35,7 +35,7 @@ let neighbors i j = [
     i, j - 1, {Span = 'j'; I = i; J = j - 1 }
 ]
 
-// For sorting
+// Sorting by fenceKey makes it easy to identify sides.
 let fenceKey fence =
     if fence.Span = 'i' then
         (fence.I, fence.J)
@@ -69,17 +69,26 @@ let calculateCosts inputPath countFences =
         area * (countFences fence))
     |> Seq.sum
 
-printfn "part1: %d" (calculateCosts "test1.txt" List.length)
+printfn "part1: %d" (calculateCosts "input.txt" List.length)
 
 let countSides (fences: Fence list) =
     fences
     |> List.groupBy (fun fence -> fence.Span)
     |> List.map (fun (_, fenceList) -> fenceList |> List.map fenceKey |> List.sort)
-    |> List.map (fun fenceList -> printfn "%A" fenceList)
-    |> ignore
-    List.length fences
-
-printfn "part2: %d" (calculateCosts "test1.txt" countSides)
+    // |> List.map (fun fenceList -> printfn "%A" fenceList; fenceList)
+    |> List.sumBy (fun fenceList ->
+        let _, acc =
+            fenceList
+            |> List.fold (fun (prev, acc) (i, j) ->
+                if prev = (i, j - 1) then
+                    ((i, j), acc)  // Continue the side.
+                else
+                    ((i, j), acc + 1) // New side
+            ) ((-1, -1), 0)
+        // printfn "acc: %d" acc
+        acc
+    )
+printfn "part2: %d" (calculateCosts "input.txt" countSides)
     
 
 
