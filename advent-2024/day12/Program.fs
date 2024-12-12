@@ -21,32 +21,45 @@ let allGridCoords arr = seq {
             yield (i, j)
 }
 
-let rec flood (grid: char[,]) i j =
+[<Struct>]
+type Fence = {
+    Span: char  // 'i' or 'j'
+    I: int
+    J: int
+}
+
+let neighbors i j = [
+    i + 1, j, {Span = 'i'; I = i; J = j}
+    i - 1, j, {Span = 'i'; I = i - 1; J = j}
+    i, j + 1, {Span = 'j'; I = i; J = j}
+    i, j - 1, {Span = 'j'; I = i; J = j - 1 }
+]
+
+let rec flood (grid: char[,]) i j accArea accFence =
     let c = Array2D.get grid i j
     if c >= 'a' then
-        (0, 0)  // already visited or boundary
+        (accArea, accFence)  // already visited or boundary
     else
         Array2D.set grid i j (toLower c)
-        [ (i + 1, j); (i - 1, j); (i, j + 1); (i, j - 1)]
-        |> List.fold (fun (area, fence) (ni, nj) ->
+        neighbors i j
+        |> List.fold (fun (area, fence) (ni, nj, nfence) ->
             let nc = Array2D.get grid ni nj
             if c = nc then // unvisited matching color
-                let (narea, nfence) = flood grid ni nj
-                (area + narea, fence + nfence)
+                flood grid ni nj area fence
             elif c = (toUpper nc) then // already visited matching color
                 (area, fence)
             else // mismatched colors; erect a fence.
-                (area, fence + 1)
-        ) (1, 0)
+                (area, nfence :: fence)
+        ) (1 + accArea, accFence)
 
 let part1 =
     let grid =
-        File.ReadAllLines("input.txt")
+        File.ReadAllLines("test1.txt")
         |> inputToGrid
     allGridCoords grid
     |> Seq.map (fun (i, j) ->
-        let (area, fence) = flood grid i j
-        area * fence)
+        let (area, fence) = flood grid i j 0 []
+        area * (List.length fence))
     |> Seq.sum
 
 printf "part1: %d" part1
