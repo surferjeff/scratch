@@ -35,6 +35,13 @@ let neighbors i j = [
     i, j - 1, {Span = 'j'; I = i; J = j - 1 }
 ]
 
+// For sorting
+let fenceKey fence =
+    if fence.Span = 'i' then
+        (fence.I, fence.J)
+    else
+        (fence.J, fence.I) 
+
 let rec flood (grid: char[,]) i j accArea accFence =
     let c = Array2D.get grid i j
     if c >= 'a' then
@@ -62,17 +69,17 @@ let calculateCosts inputPath countFences =
         area * (countFences fence))
     |> Seq.sum
 
-printf "part1: %d" (calculateCosts "test1.txt" List.length)
+printfn "part1: %d" (calculateCosts "test1.txt" List.length)
 
 let countSides (fences: Fence list) =
     fences
     |> List.groupBy (fun fence -> fence.Span)
-    |> List.map (fun (_, fenceList) -> List.sort fenceList)
+    |> List.map (fun (_, fenceList) -> fenceList |> List.map fenceKey |> List.sort)
     |> List.map (fun fenceList -> printfn "%A" fenceList)
     |> ignore
     List.length fences
 
-printf "part2: %d" (calculateCosts "test1.txt" countSides)
+printfn "part2: %d" (calculateCosts "test1.txt" countSides)
     
 
 
