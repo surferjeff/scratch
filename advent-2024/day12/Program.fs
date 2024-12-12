@@ -63,6 +63,16 @@ let calculateCosts inputPath countFences =
     |> Seq.sum
 
 printf "part1: %d" (calculateCosts "test1.txt" List.length)
+
+let countSides (fences: Fence list) =
+    fences
+    |> List.groupBy (fun fence -> fence.Span)
+    |> List.map (fun (_, fenceList) -> List.sort fenceList)
+    |> List.map (fun fenceList -> printfn "%A" fenceList)
+    |> ignore
+    List.length fences
+
+printf "part2: %d" (calculateCosts "test1.txt" countSides)
     
 
 
