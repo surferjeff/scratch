@@ -88,7 +88,7 @@ let countSides (fences: Fence list) =
         // printfn "acc: %d" acc
         acc
     )
-printfn "part2: %d" (calculateCosts "input.txt" countSides)
+printfn "part2: %d" (calculateCosts "abba.txt" countSides)
     
 
 
