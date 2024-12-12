@@ -60,17 +60,17 @@ let rec flood (grid: char[,]) i j accArea accFence =
                 (area, nfence :: fence)
         ) (1 + accArea, accFence)
 
-let calculateCosts inputPath countFences =
+let collectRegions inputPath =
     let grid =
         File.ReadAllLines(inputPath)
         |> inputToGrid
     allGridCoords grid
-    |> Seq.map (fun (i, j) ->
-        let (area, fence) = flood grid i j 0 []
-        area * (countFences fence))
-    |> Seq.sum
+    |> Seq.map (fun (i, j) -> flood grid i j 0 [])
 
-printfn "part1: %d" (calculateCosts "input.txt" List.length)
+let regions = collectRegions "input.txt" |> Seq.filter (fun (area, _) -> area > 0) |> Seq.toList
+let part1 = regions |> List.sumBy (fun (area, fences) -> area * (List.length fences))
+
+printfn "part1: %d" part1
 
 let countSides (fences: Fence list) =
     fences
@@ -87,7 +87,10 @@ let countSides (fences: Fence list) =
             ) ((-1, -1), 0)
         acc
     )
-printfn "part2: %d" (calculateCosts "input.txt" countSides)
+
+let part2 = regions |> List.sumBy (fun (area, fences) -> area * (countSides fences))
+
+printfn "part2: %d" part2
     
 
 
