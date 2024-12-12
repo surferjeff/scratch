@@ -30,14 +30,14 @@ type Fence = {
 
 let neighbors i j = [
     i + 1, j, {Span = 'i'; I = i; J = j}
-    i - 1, j, {Span = 'i'; I = i - 1; J = j}
+    i - 1, j, {Span = 'I'; I = i - 1; J = j}
     i, j + 1, {Span = 'j'; I = i; J = j}
-    i, j - 1, {Span = 'j'; I = i; J = j - 1 }
+    i, j - 1, {Span = 'J'; I = i; J = j - 1 }
 ]
 
 // Sorting by fenceKey makes it easy to identify sides.
 let fenceKey fence =
-    if fence.Span = 'i' then
+    if toLower fence.Span = 'i' then
         (fence.I, fence.J)
     else
         (fence.J, fence.I) 
@@ -75,7 +75,6 @@ let countSides (fences: Fence list) =
     fences
     |> List.groupBy (fun fence -> fence.Span)
     |> List.map (fun (_, fenceList) -> fenceList |> List.map fenceKey |> List.sort)
-    // |> List.map (fun fenceList -> printfn "%A" fenceList; fenceList)
     |> List.sumBy (fun fenceList ->
         let _, acc =
             fenceList
@@ -85,10 +84,9 @@ let countSides (fences: Fence list) =
                 else
                     ((i, j), acc + 1) // New side
             ) ((-1, -1), 0)
-        // printfn "acc: %d" acc
         acc
     )
-printfn "part2: %d" (calculateCosts "abba.txt" countSides)
+printfn "part2: %d" (calculateCosts "input.txt" countSides)
     
 
 
