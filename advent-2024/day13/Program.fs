@@ -30,6 +30,33 @@ let readInput path =
         ) (zeroGame, [])
     games
 
-let games = readInput "input.txt"
-for game in games do
-    printfn "%A" game
+let play (game: Game) =
+    let prizeX, prizeY = game.Prize
+    let aX, aY = game.A
+    let bX, bY = game.B
+    let rec loop aCount bCount best =
+        if aCount < 0 then 
+            best
+        else
+            let clawX = aCount * aX + bCount * bX
+            let clawY = aCount * aY + bCount * bY
+            if (clawX, clawY) = game.Prize then
+                let tokens = 3 * aCount + bCount
+                loop (aCount - 1) bCount (max best (Some -tokens))
+            elif clawX > prizeX || clawY > prizeY then
+                loop (aCount - 1) bCount best
+            else
+                loop aCount (bCount + 1) best
+    let aCount = min (prizeX / aX) (prizeY / aY)
+    loop aCount 0 None |> Option.map (fun n -> -n)
+
+let input = readInput "input.txt"
+
+let part1 =
+    input
+    |> Seq.map play
+    |> Seq.choose id
+    |> Seq.sum
+
+printfn "part1: %d" part1
+
