@@ -52,7 +52,6 @@ let calcSafetyFactor (robots: Robot list) xLength yLength =
 
 let robots = parseInput "input.txt"
 printfn "%d robots" (List.length robots)
-
 let movedRobots = robots |> simulate 101 103 100
-printfn "%A" (calcSafetyFactor movedRobots 11 7)
+printfn "%A" (calcSafetyFactor movedRobots 101 103)
 
