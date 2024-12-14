@@ -21,11 +21,11 @@ let parseInput path =
     })
     |> Seq.toList
 
-let simulate (robots: Robot list) xLength yLength seconds =
+let simulate xLength yLength (robots: Robot list) _ =
     robots
     |> List.map (fun robot -> 
-        let pX = (robot.pX + seconds * robot.vX) % xLength
-        let pY = (robot.pY + seconds * robot.vY) % yLength
+        let pX = (robot.pX + robot.vX) % xLength
+        let pY = (robot.pY + robot.vY) % yLength
         {
             // Wrap negative numbers back into the arena.        
             pX = if pX < 0 then pX + xLength else pX
@@ -53,6 +53,6 @@ let calcSafetyFactor (robots: Robot list) xLength yLength =
 let robots = parseInput "input.txt"
 printfn "%d robots" (List.length robots)
 
-let movedRobots = simulate robots 101 103 100
+let movedRobots = { 1..100 } |> Seq.fold (simulate 101 103) robots
 printfn "%A" (calcSafetyFactor movedRobots 11 7)
 
