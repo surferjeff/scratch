@@ -1,6 +1,6 @@
 ﻿open System.IO
 open System.Text.RegularExpressions
-
+open System.Collections
 [<Struct>]
 type Robot = {
     // Position
@@ -66,13 +66,14 @@ let renderRobots width height (robots: Robot array) =
             |> Seq.map (fun x -> Array2D.get arena x y)
         printfn "%s" (System.String(Seq.toArray line))
 
-let robotsOverlap (robots: Robot array) width height =
-    let arena = Array2D.create width height false
+let robotsOverlap (robots: Robot array) (width: int) (height: int) =
+    let arena = BitArray(width * height)
     robots |> Array.exists (fun robot ->
-            if Array2D.get arena robot.pX robot.pY then
+            let offset = robot.pY * width + robot.pX
+            if arena[offset] then
                 true
             else
-                Array2D.set arena robot.pX robot.pY true
+                arena[offset] <- true
                 false
     )
 
