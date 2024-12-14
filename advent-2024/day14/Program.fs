@@ -23,19 +23,16 @@ let parseInput path =
 
 let simulate (robots: Robot list) xLength yLength seconds =
     robots
-    |> List.map (fun robot -> {
-        pX = (robot.pX + seconds * robot.vX) % xLength
-        pY = (robot.pY + seconds * robot.vY) % yLength
-        vX = robot.vX
-        vY = robot.vY
-    })
-    // Wrap negative numbers back into the arena.
-    |> List.map (fun robot -> {
-        pX = if robot.pX < 0 then robot.pX + xLength else robot.pX
-        pY = if robot.pY < 0 then robot.pY + yLength else robot.pY
-        vX = robot.vX
-        vY = robot.vY
-    })
+    |> List.map (fun robot -> 
+        let pX = (robot.pX + seconds * robot.vX) % xLength
+        let pY = (robot.pY + seconds * robot.vY) % yLength
+        {
+            // Wrap negative numbers back into the arena.        
+            pX = if pX < 0 then pX + xLength else pX
+            pY = if pY < 0 then pY + yLength else pY
+            vX = robot.vX
+            vY = robot.vY
+        })
 
 let calcSafetyFactor (robots: Robot list) xLength yLength =
     let halfWidth = xLength / 2
@@ -54,13 +51,6 @@ let calcSafetyFactor (robots: Robot list) xLength yLength =
 
 
 let robots = parseInput "test1.txt"
-
-// let robo10 = simulate robots 11 7 10
-// let robo1010 = simulate robo10 11 7 10
-// let robo20 = simulate robots 11 7 20
-
-// assert (robo1010 = robo20)
-
 
 let movedRobots = simulate robots 11 7 100
 printfn "%A" movedRobots
