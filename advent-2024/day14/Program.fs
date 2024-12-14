@@ -69,12 +69,12 @@ let renderRobots width height (robots: Robot array) =
 let robotsOverlap (robots: Robot array) (width: int) (height: int) =
     let arena = BitArray(width * height)
     robots |> Array.exists (fun robot ->
-            let offset = robot.pY * width + robot.pX
-            if arena[offset] then
-                true
-            else
-                arena[offset] <- true
-                false
+        let offset = robot.pY * width + robot.pX
+        if arena[offset] then
+            true
+        else
+            arena[offset] <- true
+            false
     )
 
 { 1 .. 10000}
