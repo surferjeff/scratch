@@ -21,22 +21,22 @@ let parseInput path =
     })
     |> Seq.toList
 
-let simulate xLength yLength seconds (robots: Robot list) =
+let simulate width height seconds (robots: Robot list) =
     robots
     |> List.map (fun robot -> 
-        let pX = (robot.pX + robot.vX * seconds) % xLength
-        let pY = (robot.pY + robot.vY * seconds) % yLength
+        let pX = (robot.pX + robot.vX * seconds) % width
+        let pY = (robot.pY + robot.vY * seconds) % height
         {
             // Wrap negative numbers back into the arena.        
-            pX = if pX < 0 then pX + xLength else pX
-            pY = if pY < 0 then pY + yLength else pY
+            pX = if pX < 0 then pX + width else pX
+            pY = if pY < 0 then pY + height else pY
             vX = robot.vX
             vY = robot.vY
         })
 
-let calcSafetyFactor (robots: Robot list) xLength yLength =
-    let halfWidth = xLength / 2
-    let halfHeight = yLength / 2
+let calcSafetyFactor (robots: Robot list) width height =
+    let halfWidth = width / 2
+    let halfHeight = height / 2
     let q1, q2, q3, q4 =
         robots
         |> List.fold (fun (q1, q2, q3, q4) robot ->
@@ -55,3 +55,22 @@ printfn "%d robots" (List.length robots)
 let movedRobots = robots |> simulate 101 103 100
 printfn "%A" (calcSafetyFactor movedRobots 101 103)
 
+let renderRobots width height (robots: Robot list) =
+    let arena = Array2D.create width height '.'
+    robots |> List.iter (fun robot ->
+        Array2D.set arena robot.pX robot.pY '*'
+    )
+    for y in 0..height - 1 do
+        let line =
+            { 0..width - 1}
+            |> Seq.map (fun x -> Array2D.get arena x y)
+        printfn "%s" (System.String(Seq.toArray line))
+
+{ 1 .. 500}
+|> Seq.fold (fun robots i -> 
+    let robots = simulate 101 103 1 robots
+    printfn "Seconds: %d" i
+    renderRobots 101 103 robots
+    printfn ""
+    robots) robots
+|> ignore
