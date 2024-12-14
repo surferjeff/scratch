@@ -19,11 +19,11 @@ let parseInput path =
         vX = int m.Groups["vX"].Value
         vY = int m.Groups["vY"].Value
     })
-    |> Seq.toList
+    |> Seq.toArray
 
-let simulate width height seconds (robots: Robot list) =
+let simulate width height seconds (robots: Robot array) =
     robots
-    |> List.map (fun robot -> 
+    |> Array.map (fun robot -> 
         let pX = (robot.pX + robot.vX * seconds) % width
         let pY = (robot.pY + robot.vY * seconds) % height
         {
@@ -34,12 +34,12 @@ let simulate width height seconds (robots: Robot list) =
             vY = robot.vY
         })
 
-let calcSafetyFactor (robots: Robot list) width height =
+let calcSafetyFactor (robots: Robot array) width height =
     let halfWidth = width / 2
     let halfHeight = height / 2
     let q1, q2, q3, q4 =
         robots
-        |> List.fold (fun (q1, q2, q3, q4) robot ->
+        |> Array.fold (fun (q1, q2, q3, q4) robot ->
             match (compare robot.pX halfWidth), (compare robot.pY halfHeight) with
                 | -1, -1 -> (q1 + 1), q2, q3, q4
                 | -1, 1 -> q1, (q2 + 1), q3, q4
@@ -51,13 +51,13 @@ let calcSafetyFactor (robots: Robot list) width height =
 
 
 let robots = parseInput "input.txt"
-printfn "%d robots" (List.length robots)
+printfn "%d robots" (Array.length robots)
 let movedRobots = robots |> simulate 101 103 100
 printfn "%A" (calcSafetyFactor movedRobots 101 103)
 
-let renderRobots width height (robots: Robot list) =
+let renderRobots width height (robots: Robot array) =
     let arena = Array2D.create width height '.'
-    robots |> List.iter (fun robot ->
+    robots |> Array.iter (fun robot ->
         Array2D.set arena robot.pX robot.pY '*'
     )
     for y in 0..height - 1 do
@@ -66,18 +66,15 @@ let renderRobots width height (robots: Robot list) =
             |> Seq.map (fun x -> Array2D.get arena x y)
         printfn "%s" (System.String(Seq.toArray line))
 
-let robotsOverlap (robots: Robot list) width height =
+let robotsOverlap (robots: Robot array) width height =
     let arena = Array2D.create width height false
-    let rec markArena robots =
-        match robots with
-        | [] -> false
-        | robot :: rest ->
+    robots |> Array.exists (fun robot ->
             if Array2D.get arena robot.pX robot.pY then
                 true
             else
                 Array2D.set arena robot.pX robot.pY true
-                markArena rest
-    markArena robots
+                false
+    )
 
 { 1 .. 10000}
 |> Seq.fold (fun robots i -> 
