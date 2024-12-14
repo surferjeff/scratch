@@ -66,11 +66,23 @@ let renderRobots width height (robots: Robot list) =
             |> Seq.map (fun x -> Array2D.get arena x y)
         printfn "%s" (System.String(Seq.toArray line))
 
-{ 1 .. 500}
+let robotsOverlap (robots: Robot list) =
+    let rec markArena arena robots =
+        match robots with
+        | [] -> false
+        | robot :: rest ->
+            if Set.contains (robot.pX, robot.pY) arena then
+                true
+            else
+                markArena (Set.add (robot.pX, robot.pY) arena) rest
+    markArena Set.empty robots
+
+{ 1 .. 10000}
 |> Seq.fold (fun robots i -> 
     let robots = simulate 101 103 1 robots
-    printfn "Seconds: %d" i
-    renderRobots 101 103 robots
-    printfn ""
+    if not (robotsOverlap robots) then  
+        printfn "Seconds: %d" i
+        renderRobots 101 103 robots
+        printfn ""
     robots) robots
 |> ignore
