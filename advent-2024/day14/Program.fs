@@ -50,9 +50,8 @@ let calcSafetyFactor (robots: Robot list) xLength yLength =
     q1 * q2 * q3 * q4
 
 
-let robots = parseInput "test1.txt"
+let robots = parseInput "input.txt"
 
-let movedRobots = simulate robots 11 7 100
-printfn "%A" movedRobots
+let movedRobots = simulate robots 101 103 100
 printfn "%A" (calcSafetyFactor movedRobots 11 7)
 
