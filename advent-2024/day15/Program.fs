@@ -18,18 +18,6 @@ let parseInput path =
             moves.Add(m.Groups["move"].Value[0])
     array2D gridLines, moves.ToArray()
 
-let clearHalfBoxes grid =
-    for row in 0..(Array2D.length1 grid)-1 do
-        let mutable prev = Array2D.get grid row 0
-        for col in 1..(Array2D.length2 grid)-1 do
-            let c = Array2D.get grid row col
-            match prev, c with
-            | '[', ']' -> ()
-            | '[', _ -> Array2D.set grid row (col-1) '.'
-            | _, ']' -> Array2D.set grid row col '.'
-            | _ -> ()
-            prev <- c
-
 // Updates grid and returns new robot position.
 let applyMove (grid: char array2d) (row: int, col: int) (arrow: char) =
     let rowStep, colStep =
@@ -41,7 +29,7 @@ let applyMove (grid: char array2d) (row: int, col: int) (arrow: char) =
         | _ -> failwithf "Illegal step: %c" arrow
     // Explore how far the robot can push boxes.
     let mutable exploreStack = [row + rowStep, col + colStep]
-    let mutable moveStack = [row + rowStep, col + colStep, '@']
+    let mutable moveStack = [row, col, '@']
     let mutable quit = false
     while not quit do
         match exploreStack with
@@ -56,23 +44,25 @@ let applyMove (grid: char array2d) (row: int, col: int) (arrow: char) =
                 // Simple one row move.
                 let nextRow, nextCol = irow + rowStep, icol + colStep
                 exploreStack <- (nextRow, nextCol) :: xs
-                moveStack <- (nextRow, nextCol, c) :: moveStack
+                moveStack <- (irow, icol, c) :: moveStack
             | _, '[' ->
                 // Two column move.
                 let nextRow, nextCol = irow + rowStep, icol + colStep
                 exploreStack <- (nextRow, nextCol) :: (nextRow, nextCol + 1) :: xs
-                moveStack <- (nextRow, nextCol, c) :: (nextRow, nextCol + 1, ']') :: moveStack
+                moveStack <- (irow, icol, '[') :: (irow, icol + 1, ']') :: moveStack
             | _, ']' ->
                 // Two column move.
                 let nextRow, nextCol = irow + rowStep, icol + colStep
                 exploreStack <- (nextRow, nextCol) :: (nextRow, nextCol - 1) :: xs
-                moveStack <- (nextRow, nextCol, c) :: (nextRow, nextCol - 1, '[') :: moveStack
+                moveStack <- (irow, icol, ']') :: (irow, icol - 1, '[') :: moveStack
             | _ -> failwithf "Illegal char in grid: %c" c
     if exploreStack = [] then
-        moveStack |> List.iter (fun (irow, icol, c) ->
-            Array2D.set grid irow icol c)
+        moveStack |> List.distinct |> List.iter (fun (irow, icol, c) ->
+            Array2D.set grid irow icol '.'
+            Array2D.set grid (irow + rowStep) (icol + colStep) c
+        )
         Array2D.set grid row col '.'
-        clearHalfBoxes grid
+        // clearHalfBoxes grid
         row + rowStep, col + colStep
     else
         // No space to push.
@@ -118,7 +108,6 @@ let main argv =
     printfn "part1: %d" (sumBoxes grid)
 
     let widePos = moves |> Array.fold (applyMove wideGrid) wideStart
-
     printfn "part2: %d" (sumBoxes wideGrid)
 
     0
