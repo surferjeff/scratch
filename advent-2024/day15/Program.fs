@@ -36,23 +36,21 @@ let applyMove (grid: char array2d) (row: int, col: int) (arrow: char) =
         | [] -> quit <- true
         | (irow, icol) :: xs ->
             let c = Array2D.get grid irow icol
+            let nextRow, nextCol = irow + rowStep, icol + colStep
             match rowStep, c with
             | _, '.' -> exploreStack <- xs
             | _, '#' -> quit <- true
             | _ , 'O'
             | 0, ('[' | ']') ->
                 // Simple one row move.
-                let nextRow, nextCol = irow + rowStep, icol + colStep
                 exploreStack <- (nextRow, nextCol) :: xs
                 moveStack <- (irow, icol, c) :: moveStack
             | _, '[' ->
                 // Two column move.
-                let nextRow, nextCol = irow + rowStep, icol + colStep
                 exploreStack <- (nextRow, nextCol) :: (nextRow, nextCol + 1) :: xs
                 moveStack <- (irow, icol, '[') :: (irow, icol + 1, ']') :: moveStack
             | _, ']' ->
                 // Two column move.
-                let nextRow, nextCol = irow + rowStep, icol + colStep
                 exploreStack <- (nextRow, nextCol) :: (nextRow, nextCol - 1) :: xs
                 moveStack <- (irow, icol, ']') :: (irow, icol - 1, '[') :: moveStack
             | _ -> failwithf "Illegal char in grid: %c" c
