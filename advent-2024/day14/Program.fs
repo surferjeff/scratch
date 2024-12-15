@@ -77,12 +77,13 @@ let robotsOverlap (robots: Robot array) (width: int) (height: int) =
             false
     )
 
-{ 1 .. 10000}
-|> Seq.fold (fun robots i -> 
-    let robots = simulate 101 103 1 robots
+// Search the first 10,000 in parallel.
+{1..10000}
+|> Seq.toArray
+|> Array.Parallel.iter (fun i -> 
+    let robots = simulate 101 103 i robots
     if not (robotsOverlap robots 101 103) then  
         printfn "Seconds: %d" i
         renderRobots 101 103 robots
         printfn ""
-    robots) robots
-|> ignore
+    )   
