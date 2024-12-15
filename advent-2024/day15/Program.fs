@@ -56,10 +56,9 @@ let applyMove (grid: char array2d) (row: int, col: int) (arrow: char) =
             | _ -> failwithf "Illegal char in grid: %c" c
     if exploreStack = [] then
         // Move boxes.
-        moveStack |> List.distinct |> List.iter (fun (irow, icol, c) ->
+        for (irow, icol, c) in List.distinct moveStack do
             Array2D.set grid irow icol '.'
             Array2D.set grid (irow + rowStep) (icol + colStep) c
-        )
         row + rowStep, col + colStep
     else
         // No space to push.
