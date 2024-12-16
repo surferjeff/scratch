@@ -38,10 +38,10 @@ let popRoute (routes: Routes) =
         | bad -> failwith "Empty list found in routes"
 
 let findMinimalRoute (grid: char[,], start: Position) =
-    let rec explore (grid: char[,]) (routes: Map<int, Position list>, visited: Set<Position>) =
+    Seq.unfold (fun (routes: Map<int, Position list>, visited: Set<Position>) ->
         let routes, minScore, minPos = popRoute routes
         match grid[minPos.Row, minPos.Col] with
-        | 'E' -> minScore
+        | 'E' -> Some (Some minScore, (routes, visited))
         | '.' | 'S' ->
             [
                 1, match minPos.Facing with
@@ -58,10 +58,10 @@ let findMinimalRoute (grid: char[,], start: Position) =
             |> List.fold (fun (routes, visited) (score, pos) ->
                 addRoute (score + minScore) pos routes, Set.add pos visited
                 ) (routes, visited)
-            |> explore grid
-        | '#' -> explore grid (routes, visited)
-        | c -> failwithf "Bad grid char %c" c
-    explore grid (Map [0, [start]], Set [start])
+            |> (fun routesVisited -> Some (None, routesVisited))
+        | '#' -> Some (None, (routes, visited))
+        | c -> failwithf "Bad grid char %c" c) (Map [0, [start]], Set [start]) 
+    |> Seq.pick id
 
 
 [<EntryPoint>]
