@@ -21,7 +21,8 @@ let parseInput path =
     grid, start
 
 
-// Maps route scores to the positions that have those scores.
+// Maps route scores to the positions that have those scores.  I wish F# had
+// a priority queue.
 type Routes = Map<int, Position list>
 
 let addRoute score pos (routes: Routes): Routes =
