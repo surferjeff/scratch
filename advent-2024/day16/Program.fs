@@ -58,7 +58,7 @@ let findMinimalRoute (grid: char[,], start: Position) =
                     1000, { minPos with Facing = West}
                     1000, { minPos with Facing = South}
                 ]
-                |> List.filter (fun (score, pos) -> not (Set.contains pos visited))
+                |> List.filter (fun (_, pos) -> not (Set.contains pos visited))
                 |> List.fold (fun (routes, visited) (score, pos) ->
                     addRoute (score + minScore) pos routes, visited
                     ) (routes, visited)
