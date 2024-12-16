@@ -1,4 +1,5 @@
 ﻿open System.IO
+open System.Collections.Generic
 
 type Dir = North | South | East | West
 
@@ -20,33 +21,16 @@ let parseInput path =
     assert (grid[start.Row, start.Col] = 'S')
     grid, start
 
-
-// Maps route scores to the positions that have those scores.  I wish F# had
-// a priority queue.
-type Routes = Map<int, Position list>
-
-let addRoute score pos (routes: Routes): Routes =
-    Map.change score (function
-        | Some positions -> Some (pos :: positions)
-        | None -> Some [pos]
-    ) routes
-
-let popRoute (routes: Routes) =
-    let minScore, posList = Map.minKeyValue routes
-    match posList with
-        | [pos] -> (Map.remove minScore routes), minScore, pos
-        | pos :: rest -> Map.add minScore rest routes, minScore, pos
-        | bad -> failwith "Empty list found in routes"
-
 let findMinimalRoute (grid: char[,], start: Position) =
-    Seq.unfold (fun (routes: Map<int, Position list>, visited: Set<Position>) ->
-        let routes, minScore, minPos = popRoute routes
-        if Set.contains minPos visited then
-            Some (None, (routes, visited))
-        else
-            let visited = Set.add minPos visited
+    let routes = PriorityQueue<int * Position,int>()
+    routes.Enqueue((0, start), 0)
+    let visited = HashSet<Position>()
+    let mutable result = None
+    while result.IsNone do
+        let minScore, minPos = routes.Dequeue()
+        if visited.Add minPos then
             match grid[minPos.Row, minPos.Col] with
-            | 'E' -> Some (Some minScore, (routes, visited))
+            | 'E' -> result <- Some minScore
             | '.' | 'S' ->
                 [
                     1, match minPos.Facing with
@@ -59,15 +43,13 @@ let findMinimalRoute (grid: char[,], start: Position) =
                     1000, { minPos with Facing = West}
                     1000, { minPos with Facing = South}
                 ]
-                |> List.filter (fun (_, pos) -> not (Set.contains pos visited))
-                |> List.fold (fun (routes, visited) (score, pos) ->
-                    addRoute (score + minScore) pos routes, visited
-                    ) (routes, visited)
-                |> (fun routesVisited -> Some (None, routesVisited))
-            | '#' -> Some (None, (routes, visited))
-            | c -> failwithf "Bad grid char %c" c) (Map [0, [start]], Set []) 
-    |> Seq.pick id
-
+                |> List.filter (fun (_, pos) -> not (visited.Contains pos))
+                |> List.iter (fun (score, pos) ->
+                    let score = minScore + score
+                    routes.Enqueue((score, pos), score))
+            | '#' -> ()
+            | c -> failwithf "Bad grid char %c" c
+    result.Value
 
 [<EntryPoint>]
 let main argv =
