@@ -20,10 +20,26 @@ let parseInput path =
     assert (grid[start.Row, start.Col] = 'S')
     grid, start
 
+
+// Maps route scores to the positions that have those scores.
+type Routes = Map<int, Position list>
+
+let addRoute score pos (routes: Routes): Routes =
+    Map.change score (function
+        | Some positions -> Some (pos :: positions)
+        | None -> Some [pos]
+    ) routes
+
+let popRoute (routes: Routes) =
+    let minScore, posList = Map.minKeyValue routes
+    match posList with
+        | [pos] -> (Map.remove minScore routes), minScore, pos
+        | pos :: rest -> Map.add minScore rest routes, minScore, pos
+        | bad -> failwith "Empty list found in routes"
+
 let findMinimalRoute (grid: char[,], start: Position) =
-    let rec explore (grid: char[,]) (routes: Map<int, Position>, visited: Set<Position>) =
-        let minScore, minPos = Map.minKeyValue routes
-        let routes = Map.remove minScore routes
+    let rec explore (grid: char[,]) (routes: Map<int, Position list>, visited: Set<Position>) =
+        let routes, minScore, minPos = popRoute routes
         match grid[minPos.Row, minPos.Col] with
         | 'E' -> minScore
         | '.' | 'S' ->
@@ -40,12 +56,12 @@ let findMinimalRoute (grid: char[,], start: Position) =
             ]
             |> List.filter (fun (score, pos) -> not (Set.contains pos visited))
             |> List.fold (fun (routes, visited) (score, pos) ->
-                Map.add (score + minScore) pos routes, Set.add pos visited
+                addRoute (score + minScore) pos routes, Set.add pos visited
                 ) (routes, visited)
             |> explore grid
         | '#' -> explore grid (routes, visited)
         | c -> failwithf "Bad grid char %c" c
-    explore grid (Map [0, start], Set [start])
+    explore grid (Map [0, [start]], Set [start])
 
 
 [<EntryPoint>]
