@@ -40,27 +40,31 @@ let popRoute (routes: Routes) =
 let findMinimalRoute (grid: char[,], start: Position) =
     Seq.unfold (fun (routes: Map<int, Position list>, visited: Set<Position>) ->
         let routes, minScore, minPos = popRoute routes
-        match grid[minPos.Row, minPos.Col] with
-        | 'E' -> Some (Some minScore, (routes, visited))
-        | '.' | 'S' ->
-            [
-                1, match minPos.Facing with
-                    | North -> { minPos with Row = minPos.Row - 1 }
-                    | South -> { minPos with Row = minPos.Row + 1 }
-                    | East -> { minPos with Col = minPos.Col + 1 }
-                    | West -> { minPos with Col = minPos.Col - 1 }
-                1000, { minPos with Facing = North}
-                1000, { minPos with Facing = East}
-                1000, { minPos with Facing = West}
-                1000, { minPos with Facing = South}
-            ]
-            |> List.filter (fun (score, pos) -> not (Set.contains pos visited))
-            |> List.fold (fun (routes, visited) (score, pos) ->
-                addRoute (score + minScore) pos routes, Set.add pos visited
-                ) (routes, visited)
-            |> (fun routesVisited -> Some (None, routesVisited))
-        | '#' -> Some (None, (routes, visited))
-        | c -> failwithf "Bad grid char %c" c) (Map [0, [start]], Set [start]) 
+        if Set.contains minPos visited then
+            Some (None, (routes, visited))
+        else
+            let visited = Set.add minPos visited
+            match grid[minPos.Row, minPos.Col] with
+            | 'E' -> Some (Some minScore, (routes, visited))
+            | '.' | 'S' ->
+                [
+                    1, match minPos.Facing with
+                        | North -> { minPos with Row = minPos.Row - 1 }
+                        | South -> { minPos with Row = minPos.Row + 1 }
+                        | East -> { minPos with Col = minPos.Col + 1 }
+                        | West -> { minPos with Col = minPos.Col - 1 }
+                    1000, { minPos with Facing = North}
+                    1000, { minPos with Facing = East}
+                    1000, { minPos with Facing = West}
+                    1000, { minPos with Facing = South}
+                ]
+                |> List.filter (fun (score, pos) -> not (Set.contains pos visited))
+                |> List.fold (fun (routes, visited) (score, pos) ->
+                    addRoute (score + minScore) pos routes, visited
+                    ) (routes, visited)
+                |> (fun routesVisited -> Some (None, routesVisited))
+            | '#' -> Some (None, (routes, visited))
+            | c -> failwithf "Bad grid char %c" c) (Map [0, [start]], Set []) 
     |> Seq.pick id
 
 
