@@ -53,8 +53,8 @@ let execute (program: int array) (regs: Registers, ip: int, out: int list): (Reg
 
 let run (regs: Registers) (program: int array) =
     let mutable state = (regs, 0, [])
-    let isDone (_, ip, _) = ip >= program.Length
-    while not (isDone state) do
+    let keepRunning (_, ip, _) = ip < program.Length
+    while keepRunning state do
         state <- execute program state
     let regs, _, out = state
     regs, List.rev out  
