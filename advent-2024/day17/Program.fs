@@ -57,7 +57,7 @@ let run (regs: Registers) (program: int array) =
     let mutable ip = 0
     let mutable out = []
     while ip < program.Length do
-        let xregs, xout, jmp  = execute regs out program[ip] program[ip+1]
+        let xregs, xout, jmp = execute regs out program[ip] program[ip+1]
         regs <- xregs
         out <- xout
         ip <- match jmp with
@@ -75,6 +75,12 @@ let tests() =
     let regs, out = run { zeros with A = 2024} [|0;1;5;4;3;0|]
     assert(out = [4;2;5;6;7;7;7;7;3;1;0])
     assert(regs.A = 0)
+
+    let regs, out = run { zeros with B = 29} [|1; 7|]
+    assert(regs.B = 26)
+
+    let regs, out = run { zeros with B = 2024; C = 43690} [|4; 0|]
+    assert(regs.B = 44354)
 
 let failingTests() = ()
 
