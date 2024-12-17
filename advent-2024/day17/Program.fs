@@ -1,6 +1,7 @@
 ﻿open System.IO
 open System.Text.RegularExpressions
-open System
+open System.Reflection
+open System.Reflection.Emit
 
 [<Struct>]
 type Registers = {
@@ -28,6 +29,63 @@ let parseInput path =
             int m.Groups["op"].Value |> program.Add        
 
     regs, program.ToArray()
+
+module Compile = ()
+
+let loadA = OpCodes.Ldarg_0
+let loadB = OpCodes.Ldarg_1
+let loadC = OpCodes.Ldarg_2
+
+let emitCombo (gen: ILGenerator) (operand: int) =
+    match operand with
+    | 0 | 1 | 2 | 3 -> gen.Emit(OpCodes.Ldc_I8, operand)
+    | 4 -> gen.Emit(loadA)
+    | 5 -> gen.Emit(loadB)
+    | 6 -> gen.Emit(loadC)
+    | bad -> failwithf "Invalid combo operand in %d" operand
+    
+let emitStoreA (gen: ILGenerator) = gen.Emit(OpCodes.Starg, 0)
+let emitStoreB (gen: ILGenerator) = gen.Emit(OpCodes.Starg, 1)
+let emitStoreC (gen: ILGenerator) = gen.Emit(OpCodes.Starg, 2)
+
+let compile (program: int array) =
+    //               A            B            C            out
+    let args = [| typeof<int64>; typeof<int64>; typeof<int64>; typeof<int array>|]
+    let method = DynamicMethod("run", typeof<int>, args)
+    let gen = method.GetILGenerator(program.Length * 32)
+    let out = gen.DeclareLocal(typeof<int>) // Index into the out array
+    for i in 0..2..program.Length-1 do
+        let operand = program[i+1]
+        match program[i] with
+        | 0 ->
+            gen.Emit(loadA)
+            gen.Emit(OpCodes.Ldc_I8, 1)
+            emitCombo gen operand
+            gen.Emit(OpCodes.Shl)
+            gen.Emit(OpCodes.Div)
+            emitStoreA gen
+        | 1 ->
+            gen.Emit(loadB)
+            gen.Emit(OpCodes.Ldc_I8, operand)
+            gen.Emit(OpCodes.Xor)
+            emitStoreB gen
+        | 2 ->
+            emitCombo gen operand
+            gen.Emit(OpCodes.Ldc_I8, 0x0111)
+            gen.Emit(OpCodes.And)
+            emitStoreB gen
+        | 3 ->
+            () // TODO: conditional jump.
+        | 4 ->
+            gen.Emit(loadB)
+            gen.Emit(loadC)
+            gen.Emit(OpCodes.Xor)
+            emitStoreB gen
+        | 5 -> 
+
+
+
+
 
 let operate (program: int array) (regs: Registers, out: int list)
         : (Registers * int list) =
@@ -81,7 +139,7 @@ let runExpect (regs: Registers) (program: int array) (expected: int list) =
         regs <- xregs
     matchingOut && expected = []
 
-let part2 =
+let part2() =
     let regs, program = parseInput "input.txt"
     let expected = program |> Array.rev |> Array.toList
     let mutable found = false
@@ -118,7 +176,7 @@ let failingTests() = ()
 let main argv =
     if argv.Length > 0 then
         if argv[0] = "part2" then
-            part2
+            part2()
         else
             let _, out = parseInput argv[0] |> run
             out |> Seq.map string |> String.concat "," |> printfn "part1: %s"
