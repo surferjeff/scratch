@@ -69,6 +69,9 @@ let tests =
     let regs, out = run { zeros with C = 9} [|2; 6|]
     assert(regs.B = 1)
 
+    let regs, out = run { zeros with A = 10} [|5; 0; 5; 1; 5; 4|]
+    assert(out = [0; 1; 2])
+
 
 [<EntryPoint>]
 let main argv =
