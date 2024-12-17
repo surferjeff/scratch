@@ -6,8 +6,9 @@ type Registers = {
     A: int
     B: int
     C: int
+    IP: int  // Instruction pointer
 }
-let zeros = { A = 0; B = 0; C = 0}
+let zeros = { A = 0; B = 0; C = 0; IP = 0}
 
 let parseInput path =
     let rx = Regex("(Register (?<regname>A|B|C): (?<regvalue>\\d+))"
@@ -27,9 +28,9 @@ let parseInput path =
 
     regs, program.ToArray()
 
-let execute (program: int array) (regs: Registers, ip: int, out: int list)
-        : (Registers * int * int list) =
-    let opCode, operand = program[ip], program[ip+1]
+let execute (program: int array) (regs: Registers, out: int list)
+        : (Registers * int list) =
+    let opCode, operand = program[regs.IP], program[regs.IP+1]
     let combo() =
         match operand with
         | 0 | 1 | 2 | 3 -> operand
@@ -39,25 +40,25 @@ let execute (program: int array) (regs: Registers, ip: int, out: int list)
         | bad -> failwithf "Invalid combo operand in %A" (opCode, operand)
 
     match opCode with
-    | 0 -> { regs with A = regs.A / (1 <<< combo())}, ip + 2, out
-    | 1 -> { regs with B = regs.B ^^^ operand }, ip + 2, out
-    | 2 -> { regs with B = combo() &&& 0b0111 }, ip + 2, out
+    | 0 -> { regs with A = regs.A / (1 <<< combo()); IP = regs.IP + 2 }, out
+    | 1 -> { regs with B = regs.B ^^^ operand; IP = regs.IP + 2 }, out
+    | 2 -> { regs with B = combo() &&& 0b0111; IP = regs.IP + 2 }, out
     | 3 -> if regs.A = 0 then
-                regs, ip + 2, out
+                { regs with IP = regs.IP + 2 }, out
             else
-                regs, operand, out
-    | 4 -> { regs with B = regs.B ^^^ regs.C }, ip + 2, out
-    | 5 -> regs, ip + 2, (combo() &&& 0b0111) :: out
-    | 6 -> { regs with B = regs.A / (1 <<< combo())}, ip + 2, out
-    | 7 -> { regs with C = regs.A / (1 <<< combo())}, ip + 2, out
+                { regs with IP = operand }, out
+    | 4 -> { regs with B = regs.B ^^^ regs.C; IP = regs.IP + 2 }, out
+    | 5 -> { regs with IP = regs.IP + 2}, (combo() &&& 0b0111) :: out
+    | 6 -> { regs with B = regs.A / (1 <<< combo()); IP = regs.IP + 2 }, out
+    | 7 -> { regs with C = regs.A / (1 <<< combo()); IP = regs.IP + 2}, out
     | bad -> failwithf "Bad op code in %A" (opCode, operand)
 
 let run (regs: Registers, program: int array) =
-    let mutable state = (regs, 0, [])
-    let keepRunning (_, ip, _) = ip < program.Length
+    let mutable state = (regs, [])
+    let keepRunning (regs, _) = regs.IP < program.Length
     while keepRunning state do
         state <- execute program state
-    let regs, _, out = state
+    let regs, out = state
     regs, List.rev out  
 
 let tests() =
@@ -83,7 +84,7 @@ let failingTests() = ()
 let main argv =
     if argv.Length > 0 then
         let _, out = parseInput argv[0] |> run
-        out |> Seq.map string |> String.concat "," |> printfn "%s"
+        out |> Seq.map string |> String.concat "," |> printfn "part1: %s"
     else
         failingTests()
         tests()
