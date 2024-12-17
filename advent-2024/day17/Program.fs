@@ -82,7 +82,8 @@ let failingTests() = ()
 [<EntryPoint>]
 let main argv =
     if argv.Length > 0 then
-        parseInput argv[0] |> run |> snd |> printfn "%A"
+        let _, out = parseInput argv[0] |> run
+        out |> Seq.map string |> String.concat "," |> printfn "%s"
     else
         failingTests()
         tests()
