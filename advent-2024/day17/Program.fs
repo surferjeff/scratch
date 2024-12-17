@@ -27,9 +27,8 @@ let parseInput path =
 
     regs, program.ToArray
 
-type Jump = int option
-
-let execute (regs: Registers) (out: int list) (opCode: int) (operand: int): (Registers * int list * Jump) =
+let execute (program: int array) (regs: Registers, ip: int, out: int list): (Registers * int * int list) =
+    let opCode, operand = program[ip], program[ip+1]
     let combo() =
         match operand with
         | 0 | 1 | 2 | 3 -> operand
@@ -39,30 +38,25 @@ let execute (regs: Registers) (out: int list) (opCode: int) (operand: int): (Reg
         | bad -> failwithf "Invalid combo operand in %A" (opCode, operand)
 
     match opCode with
-    | 0 -> { regs with A = regs.A / (1 <<< combo())}, out, None
-    | 1 -> { regs with B = regs.B ^^^ operand }, out, None
-    | 2 -> { regs with B = combo() &&& 0b0111 }, out, None
+    | 0 -> { regs with A = regs.A / (1 <<< combo())}, ip + 2, out
+    | 1 -> { regs with B = regs.B ^^^ operand }, ip + 2, out
+    | 2 -> { regs with B = combo() &&& 0b0111 }, ip + 2, out
     | 3 -> if regs.A = 0 then
-                regs, out, None
+                regs, ip + 2, out
             else
-                regs, out, Some operand
-    | 4 -> { regs with B = regs.B ^^^ regs.C }, out, None
-    | 5 -> regs, (combo() &&& 0b0111) :: out, None
-    | 6 -> { regs with B = regs.A / (2 <<< combo())}, out, None
-    | 7 -> { regs with C = regs.A / (2 <<< combo())}, out, None
+                regs, operand, out
+    | 4 -> { regs with B = regs.B ^^^ regs.C }, ip + 2, out
+    | 5 -> regs, ip + 2, (combo() &&& 0b0111) :: out
+    | 6 -> { regs with B = regs.A / (2 <<< combo())}, ip + 2, out
+    | 7 -> { regs with C = regs.A / (2 <<< combo())}, ip + 2, out
     | bad -> failwithf "Bad op code in %A" (opCode, operand)
 
 let run (regs: Registers) (program: int array) =
-    let mutable regs = regs
-    let mutable ip = 0
-    let mutable out = []
-    while ip < program.Length do
-        let xregs, xout, jmp = execute regs out program[ip] program[ip+1]
-        regs <- xregs
-        out <- xout
-        ip <- match jmp with
-                | None -> ip + 2
-                | Some n -> n
+    let mutable state = (regs, 0, [])
+    let isDone (_, ip, _) = ip >= program.Length
+    while not (isDone state) do
+        state <- execute program state
+    let regs, _, out = state
     regs, List.rev out  
 
 let tests() =
