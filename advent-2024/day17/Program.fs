@@ -48,8 +48,8 @@ let execute (program: int array) (regs: Registers, ip: int, out: int list)
                 regs, operand, out
     | 4 -> { regs with B = regs.B ^^^ regs.C }, ip + 2, out
     | 5 -> regs, ip + 2, (combo() &&& 0b0111) :: out
-    | 6 -> { regs with B = regs.A / (2 <<< combo())}, ip + 2, out
-    | 7 -> { regs with C = regs.A / (2 <<< combo())}, ip + 2, out
+    | 6 -> { regs with B = regs.A / (1 <<< combo())}, ip + 2, out
+    | 7 -> { regs with C = regs.A / (1 <<< combo())}, ip + 2, out
     | bad -> failwithf "Bad op code in %A" (opCode, operand)
 
 let run (regs: Registers, program: int array) =
