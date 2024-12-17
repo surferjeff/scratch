@@ -28,7 +28,7 @@ let parseInput path =
 
     regs, program.ToArray()
 
-let execute (program: int array) (regs: Registers, out: int list)
+let operate (program: int array) (regs: Registers, out: int list)
         : (Registers * int list) =
     let opCode, operand = program[regs.IP], program[regs.IP+1]
     let combo() =
@@ -54,12 +54,41 @@ let execute (program: int array) (regs: Registers, out: int list)
     | bad -> failwithf "Bad op code in %A" (opCode, operand)
 
 let run (regs: Registers, program: int array) =
-    let mutable state = (regs, [])
+    let mutable state = regs, []
     let keepRunning (regs, _) = regs.IP < program.Length
     while keepRunning state do
-        state <- execute program state
+        state <- operate program state
     let regs, out = state
     regs, List.rev out  
+
+let runExpect (regs: Registers) (program: int array) (expected: int list) =
+    let mutable expected = expected
+    let mutable regs = regs
+    let mutable matchingOut = true
+    let mutable i = 0
+    while regs.IP < program.Length && matchingOut do
+        let xregs, xout = operate program (regs, [])
+        match xout, expected with
+        | [n], m :: rest -> 
+            if n = m then
+                expected <- rest
+            else
+                matchingOut <- false
+        | [n], [] -> matchingOut <- false
+        | _ -> ()
+        i <- i + 1
+        regs <- xregs
+    matchingOut && expected = []
+
+let part2 =
+    let regs, program = parseInput "input.txt"
+    let expected = program |> Array.rev |> Array.toList
+    let mutable found = false
+    let mutable regs = { regs with A = 0 }
+    while not found do
+        regs <- { regs with A = regs.A + 1 }
+        found <- runExpect regs program expected
+    printfn "%A" regs
 
 let tests() =
     let regs, out = run ({ zeros with C = 9}, [|2; 6|])
@@ -83,8 +112,11 @@ let failingTests() = ()
 [<EntryPoint>]
 let main argv =
     if argv.Length > 0 then
-        let _, out = parseInput argv[0] |> run
-        out |> Seq.map string |> String.concat "," |> printfn "part1: %s"
+        if argv[0] = "part2" then
+            part2
+        else
+            let _, out = parseInput argv[0] |> run
+            out |> Seq.map string |> String.concat "," |> printfn "part1: %s"
     else
         failingTests()
         tests()
