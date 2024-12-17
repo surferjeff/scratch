@@ -39,7 +39,7 @@ let execute (regs: Registers) (out: int list) (opCode: int) (operand: int): (Reg
         | bad -> failwithf "Invalid combo operand in %A" (opCode, operand)
 
     match opCode with
-    | 0 -> { regs with A = regs.A / (2 <<< combo())}, out, None
+    | 0 -> { regs with A = regs.A / (1 <<< combo())}, out, None
     | 1 -> { regs with B = regs.B ^^^ operand }, out, None
     | 2 -> { regs with B = combo() &&& 0b0111 }, out, None
     | 3 -> if regs.A = 0 then
@@ -47,7 +47,7 @@ let execute (regs: Registers) (out: int list) (opCode: int) (operand: int): (Reg
             else
                 regs, out, Some operand
     | 4 -> { regs with B = regs.B ^^^ regs.C }, out, None
-    | 5 -> regs, (combo() &&& 0b011) :: out, None
+    | 5 -> regs, (combo() &&& 0b0111) :: out, None
     | 6 -> { regs with B = regs.A / (2 <<< combo())}, out, None
     | 7 -> { regs with C = regs.A / (2 <<< combo())}, out, None
     | bad -> failwithf "Bad op code in %A" (opCode, operand)
@@ -65,15 +65,21 @@ let run (regs: Registers) (program: int array) =
                 | Some n -> n
     regs, List.rev out  
 
-let tests =
+let tests() =
     let regs, out = run { zeros with C = 9} [|2; 6|]
     assert(regs.B = 1)
 
     let regs, out = run { zeros with A = 10} [|5; 0; 5; 1; 5; 4|]
     assert(out = [0; 1; 2])
 
+    let regs, out = run { zeros with A = 2024} [|0;1;5;4;3;0|]
+    assert(out = [4;2;5;6;7;7;7;7;3;1;0])
+    assert(regs.A = 0)
+
+let failingTests() = ()
 
 [<EntryPoint>]
 let main argv =
-    tests
+    failingTests()
+    tests()
     0
