@@ -27,7 +27,8 @@ let parseInput path =
 
     regs, program.ToArray()
 
-let execute (program: int array) (regs: Registers, ip: int, out: int list): (Registers * int * int list) =
+let execute (program: int array) (regs: Registers, ip: int, out: int list)
+        : (Registers * int * int list) =
     let opCode, operand = program[ip], program[ip+1]
     let combo() =
         match operand with
