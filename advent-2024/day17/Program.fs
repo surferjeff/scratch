@@ -1,5 +1,6 @@
 ﻿open System.IO
 open System.Text.RegularExpressions
+open System
 
 [<Struct>]
 type Registers = {
@@ -85,9 +86,13 @@ let part2 =
     let expected = program |> Array.rev |> Array.toList
     let mutable found = false
     let mutable regs = { regs with A = 0 }
+    let mutable nextPrint = 1_000_000
     while not found do
         regs <- { regs with A = regs.A + 1 }
         found <- runExpect regs program expected
+        if regs.A = nextPrint then
+            printfn "%d" nextPrint
+            nextPrint <- nextPrint + 1_000_000
     printfn "%A" regs
 
 let tests() =
