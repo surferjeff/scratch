@@ -42,10 +42,8 @@ let execute (program: int array) (regs: Registers, ip: int, out: int list)
     | 0 -> { regs with A = regs.A / (1 <<< combo())}, ip + 2, out
     | 1 -> { regs with B = regs.B ^^^ operand }, ip + 2, out
     | 2 -> { regs with B = combo() &&& 0b0111 }, ip + 2, out
-    | 3 -> if regs.A = 0 then
-                regs, ip + 2, out
-            else
-                regs, operand, out
+    | 3 when regs.A = 0 -> regs, ip + 2, out
+    | 3 -> regs, operand, out
     | 4 -> { regs with B = regs.B ^^^ regs.C }, ip + 2, out
     | 5 -> regs, ip + 2, (combo() &&& 0b0111) :: out
     | 6 -> { regs with B = regs.A / (1 <<< combo())}, ip + 2, out
