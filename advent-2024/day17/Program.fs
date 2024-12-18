@@ -43,9 +43,9 @@ let compile (program: int array) =
     let mutable ilabel = 0
 
     // Index into the out array
-    // let iout = gen.DeclareLocal(typeof<int>)
-    // gen.Emit(OpCodes.Ldc_I4_0) 
-    // gen.Emit(OpCodes.Stloc, iout)
+    let iout = gen.DeclareLocal(typeof<int>)
+    gen.Emit(OpCodes.Ldc_I4_0) 
+    gen.Emit(OpCodes.Stloc, iout)
 
     // let emitLoadRegister index =
     //     gen.Emit(OpCodes.Ldarg_0)
@@ -132,8 +132,8 @@ let compile (program: int array) =
     //         emitADivCombo gen operand
     //         emitStoreC()
     //     | bad -> failwithf "Bad op code %d" program[i]
-    // gen.Emit(OpCodes.Ldloc, iout)
-    gen.Emit(OpCodes.Ldc_I4_0)
+
+    gen.Emit(OpCodes.Ldloc, iout)
     gen.Emit(OpCodes.Ret)
     method
 
