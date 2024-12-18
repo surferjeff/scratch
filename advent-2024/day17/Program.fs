@@ -32,41 +32,54 @@ let parseInput path =
 
     regs, program.ToArray()
 
-let loadA = OpCodes.Ldarg_0
-let loadB = OpCodes.Ldarg_1
-let loadC = OpCodes.Ldarg_2
-let loadOut = OpCodes.Ldarg_3
-
-let emitCombo (gen: ILGenerator) (operand: int) =
-    match operand with
-    | 0 | 1 | 2 | 3 -> gen.Emit(OpCodes.Ldc_I8, operand)
-    | 4 -> gen.Emit(loadA)
-    | 5 -> gen.Emit(loadB)
-    | 6 -> gen.Emit(loadC)
-    | bad -> failwithf "Invalid combo operand in %d" operand
-
-let emitADivCombo (gen: ILGenerator) operand =
-    gen.Emit(loadA)
-    gen.Emit(OpCodes.Ldc_I8, 1)
-    emitCombo gen operand
-    gen.Emit(OpCodes.Shl)
-    gen.Emit(OpCodes.Div)
-
-let emitStoreA (gen: ILGenerator) = gen.Emit(OpCodes.Starg, 0)
-let emitStoreB (gen: ILGenerator) = gen.Emit(OpCodes.Starg, 1)
-let emitStoreC (gen: ILGenerator) = gen.Emit(OpCodes.Starg, 2)
-
 let compile (program: int array) =
     let assemblyName = new AssemblyName("Compiler")
     let assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run)
     let moduleBuilder = assemblyBuilder.DefineDynamicModule("Compiler")
     //               A            B            C               out
-    let args = [| typeof<int64>; typeof<int64>; typeof<int64>; typeof<int array>|]
+    let args = [| typeof<int64 array>; typeof<int array> |]
     let method = DynamicMethod("run", typeof<int>, args, moduleBuilder)
     let gen = method.GetILGenerator(program.Length * 32)
-    let iout = gen.DeclareLocal(typeof<int>) // Index into the out array
     let labels = { 0..20 } |> Seq.map (fun _ -> gen.DefineLabel() ) |> Seq.toArray
     let mutable ilabel = 0
+
+    // Index into the out array
+    let iout = gen.DeclareLocal(typeof<int>)
+    gen.Emit(OpCodes.Ldc_I4_0) 
+    gen.Emit(OpCodes.Stloc, iout)
+
+    let emitLoadRegister index =
+        gen.Emit(OpCodes.Ldarg_0)
+        gen.Emit(index)
+        gen.Emit(OpCodes.Ldelem_I8)
+    
+    let emitLoadA() = emitLoadRegister OpCodes.Ldc_I4_0
+    let emitLoadB() = emitLoadRegister OpCodes.Ldc_I4_1
+    let emitLoadC() = emitLoadRegister OpCodes.Ldc_I4_2
+
+    let emitStoreRegister index =
+        gen.Emit(OpCodes.Ldarg_0)
+        gen.Emit(index)
+        gen.Emit(OpCodes.Stelem_I8)
+
+    let emitStoreA() = emitStoreRegister OpCodes.Ldc_I4_0
+    let emitStoreB() = emitStoreRegister OpCodes.Ldc_I4_1
+    let emitStoreC() = emitStoreRegister OpCodes.Ldc_I4_2
+
+    let emitCombo (operand: int) =
+        match operand with
+        | 0 | 1 | 2 | 3 -> gen.Emit(OpCodes.Ldc_I8, operand)
+        | 4 -> emitLoadA()
+        | 5 -> emitLoadB()
+        | 6 -> emitLoadC()
+        | bad -> failwithf "Invalid combo operand in %d" operand
+
+    let emitADivCombo (gen: ILGenerator) operand =
+        emitLoadA()
+        gen.Emit(OpCodes.Ldc_I8, 1)
+        emitCombo operand
+        gen.Emit(OpCodes.Shl)
+        gen.Emit(OpCodes.Div)
 
     for i in 0..2..program.Length-1 do
         let operand = program[i+1]
@@ -76,34 +89,34 @@ let compile (program: int array) =
         match program[i] with
         | 0 ->
             emitADivCombo gen operand
-            emitStoreA gen
+            emitStoreA()
         | 1 ->
-            gen.Emit(loadB)
+            emitLoadB()
             gen.Emit(OpCodes.Ldc_I8, operand)
             gen.Emit(OpCodes.Xor)
-            emitStoreB gen
+            emitStoreB()
         | 2 ->
-            emitCombo gen operand
+            emitCombo operand
             gen.Emit(OpCodes.Ldc_I8, 0x0111)
             gen.Emit(OpCodes.And)
-            emitStoreB gen
+            emitStoreB()
         | 3 ->
-            gen.Emit(loadA)
+            emitLoadA()
             let skip = gen.DefineLabel()
             gen.Emit(OpCodes.Ldc_I8, 0)
             gen.Emit(OpCodes.Beq, skip)
             gen.Emit(OpCodes.Br, labels[operand / 2])
             gen.MarkLabel(skip)            
         | 4 ->
-            gen.Emit(loadB)
-            gen.Emit(loadC)
+            emitLoadB()
+            emitLoadC()
             gen.Emit(OpCodes.Xor)
-            emitStoreB gen
+            emitStoreB()
         | 5 ->
-            gen.Emit(loadOut)
+            gen.Emit(OpCodes.Ldarg_1)
             gen.Emit(OpCodes.Ldloc, iout)
 
-            emitCombo gen operand
+            emitCombo operand
             gen.Emit(OpCodes.Ldc_I8, 0x0111)
             gen.Emit(OpCodes.And)
 
@@ -115,14 +128,32 @@ let compile (program: int array) =
             gen.Emit(OpCodes.Stloc, iout)
         | 6 -> 
             emitADivCombo gen operand
-            emitStoreB gen
+            emitStoreB()
         | 7 -> 
             emitADivCombo gen operand
-            emitStoreC gen
+            emitStoreC()
         | bad -> failwithf "Bad op code %d" program[i]
     gen.Emit(OpCodes.Ldloc, iout)
     gen.Emit(OpCodes.Ret)
     method
+
+let runCompiled (regs: Registers, program: int array) =
+    let compiled = compile program
+    let outBuffer = Array.create 100 0
+    let regsArray = [| regs.A; regs.B; regs.C |]
+    let args  = [| box regsArray ; outBuffer |]
+    let outLen = compiled.Invoke(null, args)
+    let regs = {
+        A = regsArray[0];
+        B = regsArray[1];
+        C = regsArray[2];
+        IP = program.Length
+    }
+    let outList =
+        outBuffer
+        |> Array.take (unbox outLen)
+        |> Array.toList
+    regs, outList
 
 
 let operate (program: int array) (regs: Registers, out: int list)
@@ -157,16 +188,6 @@ let run (regs: Registers, program: int array) =
         state <- operate program state
     let regs, out = state
     regs, List.rev out  
-
-let runCompiled (regs: Registers, program: int array) =
-    let compiled = compile program
-    let outBuffer = Array.create 100 0
-    let a, b, c = box regs.A, box regs.B, box regs.C
-    let args = [| a; b; c ; outBuffer |]
-    let outLen = compiled.Invoke(null, args)
-    { A = unbox a; B = unbox b; C = unbox c; IP = program.Length}, outBuffer
-    |> Array.take (unbox outLen)
-    |> Array.toList
 
 let runExpect (regs: Registers) (program: int array) (expected: int list) =
     let mutable expected = expected
