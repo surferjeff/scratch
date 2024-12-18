@@ -2,15 +2,15 @@
 open System.Text.RegularExpressions
 open System.Reflection
 open System.Reflection.Emit
+open System
 
 type Reg = int64
 let reg n = int64 n
 [<Struct>]
 type Registers = {
-    A: Reg
-    B: Reg
-    C: Reg
-    IP: Reg  // Instruction pointer
+    mutable A: Reg
+    mutable B: Reg
+    mutable C: Reg
 }
 
 type Machine(regs: Registers) =
@@ -45,7 +45,7 @@ type Machine(regs: Registers) =
         this.op4bxc; this.op5out; this.op6bdv; this.op7cdv |]
 
     member this.result() =
-        { A = A; B = B; C = C; IP = 0}, outBuf[0..outI-1]
+        { A = A; B = B; C = C }, outBuf[0..outI-1]
         
 
 let runMachine (regs: Registers, program: int array) =
@@ -59,7 +59,7 @@ let runMachine (regs: Registers, program: int array) =
             ip <- jmp
     machine.result()
 
-let zeros = { A = 0; B = 0; C = 0; IP = 0}
+let zeros = { A = 0; B = 0; C = 0 }
 
 let parseInput path =
     let rx = Regex("(Register (?<regname>A|B|C): (?<regvalue>\\d+))"
@@ -83,130 +83,153 @@ let compile (program: int array) =
     let assemblyName = new AssemblyName("Compiler")
     let assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run)
     let moduleBuilder = assemblyBuilder.DefineDynamicModule("Compiler")
-    let args = [| typeof<int64 array>; typeof<int array> |]
-    let method = DynamicMethod("run", typeof<int>, args, moduleBuilder)
+    let typeBuilder = moduleBuilder.DefineType("DynamicClass", TypeAttributes.Public, typeof<Machine>)
+    let method = typeBuilder.DefineMethod("run", MethodAttributes.Public, typeof<System.Void>, [| |])
     let gen = method.GetILGenerator(program.Length * 32)
     let labels = { 0..20 } |> Seq.map (fun _ -> gen.DefineLabel() ) |> Seq.toArray
     let mutable ilabel = 0
 
-    // Index into the out array
-    let iout = gen.DeclareLocal(typeof<int>)
-    gen.Emit(OpCodes.Ldc_I4_0) 
-    gen.Emit(OpCodes.Stloc, iout)
+    // Move all the class members into locals for better performance.
+    let fieldFlags = BindingFlags.NonPublic ||| BindingFlags.Instance;
+    let fieldA = typeof<Machine>.GetField("A", fieldFlags)
+    let fieldB = typeof<Machine>.GetField("B", fieldFlags)
+    let fieldC = typeof<Machine>.GetField("C", fieldFlags)
+    let fieldOutBuf = typeof<Machine>.GetField("outBuf", fieldFlags)
+    let fieldOutI = typeof<Machine>.GetField("outI", fieldFlags)
 
-    let emitLoadRegister index =
-        gen.Emit(OpCodes.Ldarg_0)
-        gen.Emit(index)
-        gen.Emit(OpCodes.Ldelem_I8)
-    
-    let emitLoadA() = emitLoadRegister OpCodes.Ldc_I4_0
-    let emitLoadB() = emitLoadRegister OpCodes.Ldc_I4_1
-    let emitLoadC() = emitLoadRegister OpCodes.Ldc_I4_2
+    let A = gen.DeclareLocal(typeof<int64>);
+    let B = gen.DeclareLocal(typeof<int64>);
+    let C = gen.DeclareLocal(typeof<int64>);
+    let outI = gen.DeclareLocal(typeof<int>);
+    let outBuf = gen.DeclareLocal(typeof<int array>);
 
-    let emitBeginStoreRegister index =
-        gen.Emit(OpCodes.Ldarg_0)
-        gen.Emit(index)
+    gen.Emit(OpCodes.Ldarg_0)
+    gen.Emit(OpCodes.Ldfld, fieldA)
+    gen.Emit(OpCodes.Stloc, A);
 
-    let emitBeginStoreA() = emitBeginStoreRegister OpCodes.Ldc_I4_0
-    let emitBeginStoreB() = emitBeginStoreRegister OpCodes.Ldc_I4_1
-    let emitBeginStoreC() = emitBeginStoreRegister OpCodes.Ldc_I4_2
+    gen.Emit(OpCodes.Ldarg_0)
+    gen.Emit(OpCodes.Ldfld, fieldB)
+    gen.Emit(OpCodes.Stloc, B);
 
-    let emitCommitStoreRegister() = gen.Emit(OpCodes.Stelem_I8)
+    gen.Emit(OpCodes.Ldarg_0)
+    gen.Emit(OpCodes.Ldfld, fieldC)
+    gen.Emit(OpCodes.Stloc, C);
 
-    let emitCombo (operand: int) =
-        match operand with
-        | 0 | 1 | 2 | 3 -> gen.Emit(OpCodes.Ldc_I8, operand)
-        | 4 -> emitLoadA()
-        | 5 -> emitLoadB()
-        | 6 -> emitLoadC()
-        | bad -> failwithf "Invalid combo operand in %d" operand
+    gen.Emit(OpCodes.Ldarg_0)
+    gen.Emit(OpCodes.Ldfld, fieldOutBuf)
+    gen.Emit(OpCodes.Stloc, outBuf);
 
-    let emitADivCombo (gen: ILGenerator) operand =
-        emitLoadA()
-        gen.Emit(OpCodes.Ldc_I8, 1)
-        emitCombo operand
-        gen.Emit(OpCodes.Shl)
-        gen.Emit(OpCodes.Div)
+    gen.Emit(OpCodes.Ldarg_0)
+    gen.Emit(OpCodes.Ldfld, fieldOutI)
+    gen.Emit(OpCodes.Stloc, outI);
 
-    for i in 0..0 do
-        let operand = program[i+1]
-        if ilabel < labels.Length then
-            gen.MarkLabel(labels[ilabel])
-            ilabel <- ilabel + 1
-        match program[i] with
-        | 0 ->
-            emitBeginStoreA()
-            emitADivCombo gen operand
-            emitCommitStoreRegister()
-        | 1 ->
-            emitBeginStoreB()
-            emitLoadB()
-            gen.Emit(OpCodes.Ldc_I8, operand)
-            gen.Emit(OpCodes.Xor)
-            emitCommitStoreRegister()
-        | 2 ->
-            emitBeginStoreB()
-            // emitCombo operand
-            gen.Emit(OpCodes.Ldc_I8, 0x0111)
-            // gen.Emit(OpCodes.And)
-            emitCommitStoreRegister()
-        | 3 ->
-            emitLoadA()
-            let skip = gen.DefineLabel()
-            gen.Emit(OpCodes.Ldc_I8, 0)
-            gen.Emit(OpCodes.Beq, skip)
-            gen.Emit(OpCodes.Br, labels[operand / 2])
-            gen.MarkLabel(skip)            
-        | 4 ->
-            emitBeginStoreB()
-            emitLoadB()
-            emitLoadC()
-            gen.Emit(OpCodes.Xor)
-            emitCommitStoreRegister()
-        | 5 ->
-            gen.Emit(OpCodes.Ldarg_1)
-            gen.Emit(OpCodes.Ldloc, iout)
 
-            emitCombo operand
-            gen.Emit(OpCodes.Ldc_I8, 0x0111)
-            gen.Emit(OpCodes.And)
+    // let emitCombo (operand: int) =
+    //     match operand with
+    //     | 0 | 1 | 2 | 3 -> gen.Emit(OpCodes.Ldc_I8, operand)
+    //     | 4 ->
+    //         gen.Emit(OpCodes.Ldarg_0)
+    //         gen.Emit(OpCodes.Ldfld, fieldA)
+    //     | 5 ->
+    //         gen.Emit(OpCodes.Ldarg_0)
+    //         gen.Emit(OpCodes.Ldfld, fieldB)
+    //     | 6 ->
+    //         gen.Emit(OpCodes.Ldarg_0)
+    //         gen.Emit(OpCodes.Ldfld, fieldC)
+    //     | bad -> failwithf "Invalid combo operand in %d" operand
 
-            gen.Emit(OpCodes.Stelem_I4)
+    // let emitADivCombo operand =
+    //     gen.Emit(OpCodes.Ldarg_0)
+    //     gen.Emit(OpCodes.Ldfld, fieldA)
+    //     gen.Emit(OpCodes.Ldc_I8, 1)
+    //     emitCombo operand
+    //     gen.Emit(OpCodes.Shl)
+    //     gen.Emit(OpCodes.Div)
 
-            gen.Emit(OpCodes.Ldloc, iout)
-            gen.Emit(OpCodes.Ldc_I8, 1)
-            gen.Emit(OpCodes.Add)
-            gen.Emit(OpCodes.Stloc, iout)
-        | 6 -> 
-            emitBeginStoreB()
-            emitADivCombo gen operand
-            emitCommitStoreRegister()
-        | 7 -> 
-            emitBeginStoreC()
-            emitADivCombo gen operand
-            emitCommitStoreRegister()
-        | bad -> failwithf "Bad op code %d" program[i]
-    gen.Emit(OpCodes.Ldloc, iout)
+    // for i in 0..0 do
+    //     let operand = program[i+1]
+    //     if ilabel < labels.Length then
+    //         gen.MarkLabel(labels[ilabel])
+    //         ilabel <- ilabel + 1
+    //     match program[i] with
+    //     | 0 ->
+    //         gen.Emit(OpCodes.Ldarg_0)
+    //         emitADivCombo operand
+    //         gen.Emit(OpCodes.Stfld, fieldA)
+    //     | 1 ->
+    //         gen.Emit(OpCodes.Ldarg_0)
+    //         gen.Emit(OpCodes.Ldarg_0)
+    //         gen.Emit(OpCodes.Ldfld, fieldB)
+    //         gen.Emit(OpCodes.Ldc_I8, operand)
+    //         gen.Emit(OpCodes.Xor)
+    //         gen.Emit(OpCodes.Stfld, fieldB)
+    //     | 2 ->
+    //         gen.Emit(OpCodes.Ldarg_0)
+    //         emitCombo operand
+    //         gen.Emit(OpCodes.Ldc_I8, 0x0111)
+    //         gen.Emit(OpCodes.And)
+    //         gen.Emit(OpCodes.Stfld, fieldB)            
+    //     | 3 ->
+    //         emitLoadA()
+    //         let skip = gen.DefineLabel()
+    //         gen.Emit(OpCodes.Ldc_I8, 0)
+    //         gen.Emit(OpCodes.Beq, skip)
+    //         gen.Emit(OpCodes.Br, labels[operand / 2])
+    //         gen.MarkLabel(skip)            
+    //     | 4 ->
+    //         emitBeginStoreB()
+    //         emitLoadB()
+    //         emitLoadC()
+    //         gen.Emit(OpCodes.Xor)
+    //         emitCommitStoreRegister()
+    //     | 5 ->
+    //         gen.Emit(OpCodes.Ldarg_1)
+    //         gen.Emit(OpCodes.Ldloc, iout)
+
+    //         emitCombo operand
+    //         gen.Emit(OpCodes.Ldc_I8, 0x0111)
+    //         gen.Emit(OpCodes.And)
+
+    //         gen.Emit(OpCodes.Stelem_I4)
+
+    //         gen.Emit(OpCodes.Ldloc, iout)
+    //         gen.Emit(OpCodes.Ldc_I8, 1)
+    //         gen.Emit(OpCodes.Add)
+    //         gen.Emit(OpCodes.Stloc, iout)
+    //     | 6 -> 
+    //         emitBeginStoreB()
+    //         emitADivCombo gen operand
+    //         emitCommitStoreRegister()
+    //     | 7 -> 
+    //         emitBeginStoreC()
+    //         emitADivCombo gen operand
+    //         emitCommitStoreRegister()
+    //     | bad -> failwithf "Bad op code %d" program[i]
+    // gen.Emit(OpCodes.Ldloc, iout)
+
+    // Move all the local variables back into fields.
+    gen.Emit(OpCodes.Ldarg_0)
+    gen.Emit(OpCodes.Ldloc, A);
+    gen.Emit(OpCodes.Stfld, fieldA)
+
+    gen.Emit(OpCodes.Ldarg_0)
+    gen.Emit(OpCodes.Ldloc, B);
+    gen.Emit(OpCodes.Stfld, fieldB)
+
+    gen.Emit(OpCodes.Ldarg_0)
+    gen.Emit(OpCodes.Ldloc, C);
+    gen.Emit(OpCodes.Stfld, fieldC)
+
+    gen.Emit(OpCodes.Ldarg_0)
+    gen.Emit(OpCodes.Ldloc, outI);
+    gen.Emit(OpCodes.Stfld, fieldOutI)
+
     gen.Emit(OpCodes.Ret)
-    method
-
-let runCompiled (regs: Registers, program: int array) =
-    let compiled = compile program
-    let outBuffer = Array.create 100 0
-    let regsArray = [| regs.A; regs.B; regs.C |]
-    let args  = [| box regsArray ; outBuffer |]
-    let outLen = compiled.Invoke(null, args)
-    let regs = {
-        A = regsArray[0];
-        B = regsArray[1];
-        C = regsArray[2];
-        IP = program.Length
-    }
-    let outList =
-        outBuffer
-        |> Array.take (unbox outLen)
-        |> Array.toList
-    regs, outList
+    
+    let newType = typeBuilder.CreateType()
+    fun (regs: Registers) ->
+        let instance = Activator.CreateInstance()
+        method.Invoke(instance, null)
 
 let part2() =
     let regs, program = parseInput "input.txt"
@@ -221,10 +244,6 @@ let part2() =
             printfn "%d" nextPrint
             nextPrint <- nextPrint + 1_000_000
     printfn "%A" regs
-
-let compiledTests() = 
-    let regs, out = runCompiled ({ zeros with C = 9}, [|2; 6|])
-    assert(regs.B = 1)
 
 let tests() =
     let regs, out = runMachine ({ zeros with C = 9}, [|2; 6|])
