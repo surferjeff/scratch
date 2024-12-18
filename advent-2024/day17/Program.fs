@@ -56,14 +56,15 @@ let compile (program: int array) =
     let emitLoadB() = emitLoadRegister OpCodes.Ldc_I4_1
     let emitLoadC() = emitLoadRegister OpCodes.Ldc_I4_2
 
-    let emitStoreRegister index =
+    let emitBeginStoreRegister index =
         gen.Emit(OpCodes.Ldarg_0)
         gen.Emit(index)
-        gen.Emit(OpCodes.Stelem_I8)
 
-    let emitStoreA() = emitStoreRegister OpCodes.Ldc_I4_0
-    let emitStoreB() = emitStoreRegister OpCodes.Ldc_I4_1
-    let emitStoreC() = emitStoreRegister OpCodes.Ldc_I4_2
+    let emitBeginStoreA() = emitBeginStoreRegister OpCodes.Ldc_I4_0
+    let emitBeginStoreB() = emitBeginStoreRegister OpCodes.Ldc_I4_1
+    let emitBeginStoreC() = emitBeginStoreRegister OpCodes.Ldc_I4_2
+
+    let emitCommitStoreRegister() = gen.Emit(OpCodes.Stelem_I8)
 
     let emitCombo (operand: int) =
         match operand with
@@ -80,59 +81,64 @@ let compile (program: int array) =
         gen.Emit(OpCodes.Shl)
         gen.Emit(OpCodes.Div)
 
-    // for i in 0..0 do
-    //     let operand = program[i+1]
-    //     if ilabel < labels.Length then
-    //         gen.MarkLabel(labels[ilabel])
-    //         ilabel <- ilabel + 1
-    //     match program[i] with
-    //     | 0 ->
-    //         emitADivCombo gen operand
-    //         emitStoreA()
-    //     | 1 ->
-    //         emitLoadB()
-    //         gen.Emit(OpCodes.Ldc_I8, operand)
-    //         gen.Emit(OpCodes.Xor)
-    //         emitStoreB()
-    //     | 2 ->
-    //         emitCombo operand
-    //         gen.Emit(OpCodes.Ldc_I8, 0x0111)
-    //         gen.Emit(OpCodes.And)
-    //         emitStoreB()
-    //     | 3 ->
-    //         emitLoadA()
-    //         let skip = gen.DefineLabel()
-    //         gen.Emit(OpCodes.Ldc_I8, 0)
-    //         gen.Emit(OpCodes.Beq, skip)
-    //         gen.Emit(OpCodes.Br, labels[operand / 2])
-    //         gen.MarkLabel(skip)            
-    //     | 4 ->
-    //         emitLoadB()
-    //         emitLoadC()
-    //         gen.Emit(OpCodes.Xor)
-    //         emitStoreB()
-    //     | 5 ->
-    //         gen.Emit(OpCodes.Ldarg_1)
-    //         gen.Emit(OpCodes.Ldloc, iout)
+    for i in 0..0 do
+        let operand = program[i+1]
+        if ilabel < labels.Length then
+            gen.MarkLabel(labels[ilabel])
+            ilabel <- ilabel + 1
+        match program[i] with
+        | 0 ->
+            emitBeginStoreA()
+            emitADivCombo gen operand
+            emitCommitStoreRegister()
+        | 1 ->
+            emitBeginStoreB()
+            emitLoadB()
+            gen.Emit(OpCodes.Ldc_I8, operand)
+            gen.Emit(OpCodes.Xor)
+            emitCommitStoreRegister()
+        | 2 ->
+            emitBeginStoreB()
+            // emitCombo operand
+            gen.Emit(OpCodes.Ldc_I8, 0x0111)
+            // gen.Emit(OpCodes.And)
+            emitCommitStoreRegister()
+        | 3 ->
+            emitLoadA()
+            let skip = gen.DefineLabel()
+            gen.Emit(OpCodes.Ldc_I8, 0)
+            gen.Emit(OpCodes.Beq, skip)
+            gen.Emit(OpCodes.Br, labels[operand / 2])
+            gen.MarkLabel(skip)            
+        | 4 ->
+            emitBeginStoreB()
+            emitLoadB()
+            emitLoadC()
+            gen.Emit(OpCodes.Xor)
+            emitCommitStoreRegister()
+        | 5 ->
+            gen.Emit(OpCodes.Ldarg_1)
+            gen.Emit(OpCodes.Ldloc, iout)
 
-    //         emitCombo operand
-    //         gen.Emit(OpCodes.Ldc_I8, 0x0111)
-    //         gen.Emit(OpCodes.And)
+            emitCombo operand
+            gen.Emit(OpCodes.Ldc_I8, 0x0111)
+            gen.Emit(OpCodes.And)
 
-    //         gen.Emit(OpCodes.Stelem_I4)
+            gen.Emit(OpCodes.Stelem_I4)
 
-    //         gen.Emit(OpCodes.Ldloc, iout)
-    //         gen.Emit(OpCodes.Ldc_I8, 1)
-    //         gen.Emit(OpCodes.Add)
-    //         gen.Emit(OpCodes.Stloc, iout)
-    //     | 6 -> 
-    //         emitADivCombo gen operand
-    //         emitStoreB()
-    //     | 7 -> 
-    //         emitADivCombo gen operand
-    //         emitStoreC()
-    //     | bad -> failwithf "Bad op code %d" program[i]
-
+            gen.Emit(OpCodes.Ldloc, iout)
+            gen.Emit(OpCodes.Ldc_I8, 1)
+            gen.Emit(OpCodes.Add)
+            gen.Emit(OpCodes.Stloc, iout)
+        | 6 -> 
+            emitBeginStoreB()
+            emitADivCombo gen operand
+            emitCommitStoreRegister()
+        | 7 -> 
+            emitBeginStoreC()
+            emitADivCombo gen operand
+            emitCommitStoreRegister()
+        | bad -> failwithf "Bad op code %d" program[i]
     gen.Emit(OpCodes.Ldloc, iout)
     gen.Emit(OpCodes.Ret)
     method
