@@ -3,12 +3,14 @@ open System.Text.RegularExpressions
 open System.Reflection
 open System.Reflection.Emit
 
+type Reg = int64
+let reg n = int64 n
 [<Struct>]
 type Registers = {
-    A: int
-    B: int
-    C: int
-    IP: int  // Instruction pointer
+    A: Reg
+    B: Reg
+    C: Reg
+    IP: Reg  // Instruction pointer
 }
 let zeros = { A = 0; B = 0; C = 0; IP = 0}
 
@@ -30,11 +32,10 @@ let parseInput path =
 
     regs, program.ToArray()
 
-module Compile = ()
-
 let loadA = OpCodes.Ldarg_0
 let loadB = OpCodes.Ldarg_1
 let loadC = OpCodes.Ldarg_2
+let loadOut = OpCodes.Ldarg_3
 
 let emitCombo (gen: ILGenerator) (operand: int) =
     match operand with
@@ -43,26 +44,38 @@ let emitCombo (gen: ILGenerator) (operand: int) =
     | 5 -> gen.Emit(loadB)
     | 6 -> gen.Emit(loadC)
     | bad -> failwithf "Invalid combo operand in %d" operand
-    
+
+let emitADivCombo (gen: ILGenerator) operand =
+    gen.Emit(loadA)
+    gen.Emit(OpCodes.Ldc_I8, 1)
+    emitCombo gen operand
+    gen.Emit(OpCodes.Shl)
+    gen.Emit(OpCodes.Div)
+
 let emitStoreA (gen: ILGenerator) = gen.Emit(OpCodes.Starg, 0)
 let emitStoreB (gen: ILGenerator) = gen.Emit(OpCodes.Starg, 1)
 let emitStoreC (gen: ILGenerator) = gen.Emit(OpCodes.Starg, 2)
 
 let compile (program: int array) =
-    //               A            B            C            out
+    let assemblyName = new AssemblyName("Compiler")
+    let assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run)
+    let moduleBuilder = assemblyBuilder.DefineDynamicModule("Compiler")
+    //               A            B            C               out
     let args = [| typeof<int64>; typeof<int64>; typeof<int64>; typeof<int array>|]
-    let method = DynamicMethod("run", typeof<int>, args)
+    let method = DynamicMethod("run", typeof<int>, args, moduleBuilder)
     let gen = method.GetILGenerator(program.Length * 32)
-    let out = gen.DeclareLocal(typeof<int>) // Index into the out array
+    let iout = gen.DeclareLocal(typeof<int>) // Index into the out array
+    let labels = { 0..20 } |> Seq.map (fun _ -> gen.DefineLabel() ) |> Seq.toArray
+    let mutable ilabel = 0
+
     for i in 0..2..program.Length-1 do
         let operand = program[i+1]
+        if ilabel < labels.Length then
+            gen.MarkLabel(labels[ilabel])
+            ilabel <- ilabel + 1
         match program[i] with
         | 0 ->
-            gen.Emit(loadA)
-            gen.Emit(OpCodes.Ldc_I8, 1)
-            emitCombo gen operand
-            gen.Emit(OpCodes.Shl)
-            gen.Emit(OpCodes.Div)
+            emitADivCombo gen operand
             emitStoreA gen
         | 1 ->
             gen.Emit(loadB)
@@ -75,41 +88,66 @@ let compile (program: int array) =
             gen.Emit(OpCodes.And)
             emitStoreB gen
         | 3 ->
-            () // TODO: conditional jump.
+            gen.Emit(loadA)
+            let skip = gen.DefineLabel()
+            gen.Emit(OpCodes.Ldc_I8, 0)
+            gen.Emit(OpCodes.Beq, skip)
+            gen.Emit(OpCodes.Br, labels[operand / 2])
+            gen.MarkLabel(skip)            
         | 4 ->
             gen.Emit(loadB)
             gen.Emit(loadC)
             gen.Emit(OpCodes.Xor)
             emitStoreB gen
-        | 5 -> 
+        | 5 ->
+            gen.Emit(loadOut)
+            gen.Emit(OpCodes.Ldloc, iout)
 
+            emitCombo gen operand
+            gen.Emit(OpCodes.Ldc_I8, 0x0111)
+            gen.Emit(OpCodes.And)
 
+            gen.Emit(OpCodes.Stelem_I4)
 
+            gen.Emit(OpCodes.Ldloc, iout)
+            gen.Emit(OpCodes.Ldc_I8, 1)
+            gen.Emit(OpCodes.Add)
+            gen.Emit(OpCodes.Stloc, iout)
+        | 6 -> 
+            emitADivCombo gen operand
+            emitStoreB gen
+        | 7 -> 
+            emitADivCombo gen operand
+            emitStoreC gen
+        | bad -> failwithf "Bad op code %d" program[i]
+    gen.Emit(OpCodes.Ldloc, iout)
+    gen.Emit(OpCodes.Ret)
+    method
 
 
 let operate (program: int array) (regs: Registers, out: int list)
         : (Registers * int list) =
-    let opCode, operand = program[regs.IP], program[regs.IP+1]
+    let opCode, operand = program[int regs.IP], program[int regs.IP+1]
     let combo() =
         match operand with
         | 0 | 1 | 2 | 3 -> operand
-        | 4 -> regs.A
-        | 5 -> regs.B
-        | 6 -> regs.C
+        | 4 -> int32 regs.A
+        | 5 -> int32 regs.B
+        | 6 -> int32 regs.C
         | bad -> failwithf "Invalid combo operand in %A" (opCode, operand)
 
     match opCode with
-    | 0 -> { regs with A = regs.A / (1 <<< combo()); IP = regs.IP + 2 }, out
-    | 1 -> { regs with B = regs.B ^^^ operand; IP = regs.IP + 2 }, out
-    | 2 -> { regs with B = combo() &&& 0b0111; IP = regs.IP + 2 }, out
+    | 0 -> { regs with A = regs.A / (1L <<< combo()); IP = regs.IP + 2L }, out
+    | 1 -> { regs with B = regs.B ^^^ operand; IP = regs.IP + 2L }, out
+    | 2 -> { regs with B = combo() &&& 0b0111; IP = regs.IP + 2L }, out
     | 3 -> if regs.A = 0 then
-                { regs with IP = regs.IP + 2 }, out
+                { regs with IP = regs.IP + 2L }, out
             else
                 { regs with IP = operand }, out
-    | 4 -> { regs with B = regs.B ^^^ regs.C; IP = regs.IP + 2 }, out
-    | 5 -> { regs with IP = regs.IP + 2}, (combo() &&& 0b0111) :: out
-    | 6 -> { regs with B = regs.A / (1 <<< combo()); IP = regs.IP + 2 }, out
-    | 7 -> { regs with C = regs.A / (1 <<< combo()); IP = regs.IP + 2}, out
+    | 4 -> { regs with B = regs.B ^^^ regs.C; IP = regs.IP + 2L }, out
+    | 5 -> { regs with IP = regs.IP + 2L}, (combo() &&& 0b0111) :: out
+    | 6 -> { regs with B = regs.A / (1L <<< combo()); IP = regs.IP + 2L }, out
+    | 7 -> { regs with C = regs.A / (1L <<< combo()); IP = regs.IP + 2L}, out
     | bad -> failwithf "Bad op code in %A" (opCode, operand)
 
 let run (regs: Registers, program: int array) =
@@ -119,6 +157,16 @@ let run (regs: Registers, program: int array) =
         state <- operate program state
     let regs, out = state
     regs, List.rev out  
+
+let runCompiled (regs: Registers, program: int array) =
+    let compiled = compile program
+    let outBuffer = Array.create 100 0
+    let a, b, c = box regs.A, box regs.B, box regs.C
+    let args = [| a; b; c ; outBuffer |]
+    let outLen = compiled.Invoke(null, args)
+    { A = unbox a; B = unbox b; C = unbox c; IP = program.Length}, outBuffer
+    |> Array.take (unbox outLen)
+    |> Array.toList
 
 let runExpect (regs: Registers) (program: int array) (expected: int list) =
     let mutable expected = expected
@@ -146,7 +194,7 @@ let part2() =
     let mutable regs = { regs with A = 0 }
     let mutable nextPrint = 1_000_000
     while not found do
-        regs <- { regs with A = regs.A + 1 }
+        regs <- { regs with A = regs.A + 1L }
         found <- runExpect regs program expected
         if regs.A = nextPrint then
             printfn "%d" nextPrint
@@ -170,6 +218,11 @@ let tests() =
     let regs, out = run ({ zeros with B = 2024; C = 43690}, [|4; 0|])
     assert(regs.B = 44354)
 
+let compiledTests() = 
+    let regs, out = runCompiled ({ zeros with C = 9}, [|2; 6|])
+    assert(regs.B = 1)
+
+
 let failingTests() = ()
 
 [<EntryPoint>]
@@ -182,5 +235,6 @@ let main argv =
             out |> Seq.map string |> String.concat "," |> printfn "part1: %s"
     else
         failingTests()
+        compiledTests()
         tests()
     0
