@@ -47,38 +47,38 @@ let compile (program: int array) =
     gen.Emit(OpCodes.Ldc_I4_0) 
     gen.Emit(OpCodes.Stloc, iout)
 
-    // let emitLoadRegister index =
-    //     gen.Emit(OpCodes.Ldarg_0)
-    //     gen.Emit(index)
-    //     gen.Emit(OpCodes.Ldelem_I8)
+    let emitLoadRegister index =
+        gen.Emit(OpCodes.Ldarg_0)
+        gen.Emit(index)
+        gen.Emit(OpCodes.Ldelem_I8)
     
-    // let emitLoadA() = emitLoadRegister OpCodes.Ldc_I4_0
-    // let emitLoadB() = emitLoadRegister OpCodes.Ldc_I4_1
-    // let emitLoadC() = emitLoadRegister OpCodes.Ldc_I4_2
+    let emitLoadA() = emitLoadRegister OpCodes.Ldc_I4_0
+    let emitLoadB() = emitLoadRegister OpCodes.Ldc_I4_1
+    let emitLoadC() = emitLoadRegister OpCodes.Ldc_I4_2
 
-    // let emitStoreRegister index =
-    //     gen.Emit(OpCodes.Ldarg_0)
-    //     gen.Emit(index)
-    //     gen.Emit(OpCodes.Stelem_I8)
+    let emitStoreRegister index =
+        gen.Emit(OpCodes.Ldarg_0)
+        gen.Emit(index)
+        gen.Emit(OpCodes.Stelem_I8)
 
-    // let emitStoreA() = emitStoreRegister OpCodes.Ldc_I4_0
-    // let emitStoreB() = emitStoreRegister OpCodes.Ldc_I4_1
-    // let emitStoreC() = emitStoreRegister OpCodes.Ldc_I4_2
+    let emitStoreA() = emitStoreRegister OpCodes.Ldc_I4_0
+    let emitStoreB() = emitStoreRegister OpCodes.Ldc_I4_1
+    let emitStoreC() = emitStoreRegister OpCodes.Ldc_I4_2
 
-    // let emitCombo (operand: int) =
-    //     match operand with
-    //     | 0 | 1 | 2 | 3 -> gen.Emit(OpCodes.Ldc_I8, operand)
-    //     | 4 -> emitLoadA()
-    //     | 5 -> emitLoadB()
-    //     | 6 -> emitLoadC()
-    //     | bad -> failwithf "Invalid combo operand in %d" operand
+    let emitCombo (operand: int) =
+        match operand with
+        | 0 | 1 | 2 | 3 -> gen.Emit(OpCodes.Ldc_I8, operand)
+        | 4 -> emitLoadA()
+        | 5 -> emitLoadB()
+        | 6 -> emitLoadC()
+        | bad -> failwithf "Invalid combo operand in %d" operand
 
-    // let emitADivCombo (gen: ILGenerator) operand =
-    //     emitLoadA()
-    //     gen.Emit(OpCodes.Ldc_I8, 1)
-    //     emitCombo operand
-    //     gen.Emit(OpCodes.Shl)
-    //     gen.Emit(OpCodes.Div)
+    let emitADivCombo (gen: ILGenerator) operand =
+        emitLoadA()
+        gen.Emit(OpCodes.Ldc_I8, 1)
+        emitCombo operand
+        gen.Emit(OpCodes.Shl)
+        gen.Emit(OpCodes.Div)
 
     // for i in 0..0 do
     //     let operand = program[i+1]
