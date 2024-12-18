@@ -83,68 +83,65 @@ let compile (program: int array) =
     let assemblyName = new AssemblyName("Compiler")
     let assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run)
     let moduleBuilder = assemblyBuilder.DefineDynamicModule("Compiler")
-    let typeBuilder = moduleBuilder.DefineType("DynamicClass", TypeAttributes.Public, typeof<Machine>)
-    let method = typeBuilder.DefineMethod("run", MethodAttributes.Public, typeof<System.Void>, [| |])
+    let args = [| typeof<int array>; typeof<Registers>; |]
+    let method = DynamicMethod("run", typeof<int>, args, moduleBuilder)
     let gen = method.GetILGenerator(program.Length * 32)
+
+    let fieldFlags = BindingFlags.Public ||| BindingFlags.Instance;
+    let fieldA = typeof<Registers>.GetField("A@", fieldFlags)
+    let fieldB = typeof<Registers>.GetField("B@", fieldFlags)
+    let fieldC = typeof<Registers>.GetField("C@", fieldFlags)
+
+    // Local variables.
+    // 0: Register A
+    // 1: Register B
+    // 2: Register C
+    // 3: I, index into outBuf.
+
+    let emitLoadA() = gen.Emit(OpCodes.Ldloc_0)
+    let emitLoadB() = gen.Emit(OpCodes.Ldloc_1)
+    let emitLoadC() = gen.Emit(OpCodes.Ldloc_2)
+    let emitLoadI() = gen.Emit(OpCodes.Ldloc_3)
+
+    let emitStoreA() = gen.Emit(OpCodes.Stloc_0)
+    let emitStoreB() = gen.Emit(OpCodes.Stloc_1)
+    let emitStoreC() = gen.Emit(OpCodes.Stloc_2)
+    let emitStoreI() = gen.Emit(OpCodes.Stloc_3)
+
+    // Initialize local variables.
+    gen.Emit(OpCodes.Ldarg_1)
+    gen.Emit(OpCodes.Ldfld, fieldA)
+    emitStoreA()
+
+    gen.Emit(OpCodes.Ldarg_1)
+    gen.Emit(OpCodes.Ldfld, fieldB)
+    emitStoreB()
+
+    gen.Emit(OpCodes.Ldarg_1)
+    gen.Emit(OpCodes.Ldfld, fieldC)
+    emitStoreC()
+
+    gen.Emit(OpCodes.Ldc_I4_0)
+    emitStoreI()
+
+
+    let emitCombo (operand: int) =
+        match operand with
+        | 0 | 1 | 2 | 3 -> gen.Emit(OpCodes.Ldc_I8, operand)
+        | 4 -> emitLoadA()
+        | 5 -> emitLoadB()
+        | 6 -> emitLoadC()
+        | bad -> failwithf "Invalid combo operand in %d" operand
+
+    let emitADivCombo operand =
+        emitLoadA()
+        gen.Emit(OpCodes.Ldc_I8, 1)
+        emitCombo operand
+        gen.Emit(OpCodes.Shl)
+        gen.Emit(OpCodes.Div)
+
     let labels = { 0..20 } |> Seq.map (fun _ -> gen.DefineLabel() ) |> Seq.toArray
     let mutable ilabel = 0
-
-    // Move all the class members into locals for better performance.
-    let fieldFlags = BindingFlags.NonPublic ||| BindingFlags.Instance;
-    let fieldA = typeof<Machine>.GetField("A", fieldFlags)
-    let fieldB = typeof<Machine>.GetField("B", fieldFlags)
-    let fieldC = typeof<Machine>.GetField("C", fieldFlags)
-    let fieldOutBuf = typeof<Machine>.GetField("outBuf", fieldFlags)
-    let fieldOutI = typeof<Machine>.GetField("outI", fieldFlags)
-
-    let A = gen.DeclareLocal(typeof<int64>);
-    let B = gen.DeclareLocal(typeof<int64>);
-    let C = gen.DeclareLocal(typeof<int64>);
-    let outI = gen.DeclareLocal(typeof<int>);
-    let outBuf = gen.DeclareLocal(typeof<int array>);
-
-    gen.Emit(OpCodes.Ldarg_0)
-    gen.Emit(OpCodes.Ldfld, fieldA)
-    gen.Emit(OpCodes.Stloc, A);
-
-    gen.Emit(OpCodes.Ldarg_0)
-    gen.Emit(OpCodes.Ldfld, fieldB)
-    gen.Emit(OpCodes.Stloc, B);
-
-    gen.Emit(OpCodes.Ldarg_0)
-    gen.Emit(OpCodes.Ldfld, fieldC)
-    gen.Emit(OpCodes.Stloc, C);
-
-    gen.Emit(OpCodes.Ldarg_0)
-    gen.Emit(OpCodes.Ldfld, fieldOutBuf)
-    gen.Emit(OpCodes.Stloc, outBuf);
-
-    gen.Emit(OpCodes.Ldarg_0)
-    gen.Emit(OpCodes.Ldfld, fieldOutI)
-    gen.Emit(OpCodes.Stloc, outI);
-
-
-    // let emitCombo (operand: int) =
-    //     match operand with
-    //     | 0 | 1 | 2 | 3 -> gen.Emit(OpCodes.Ldc_I8, operand)
-    //     | 4 ->
-    //         gen.Emit(OpCodes.Ldarg_0)
-    //         gen.Emit(OpCodes.Ldfld, fieldA)
-    //     | 5 ->
-    //         gen.Emit(OpCodes.Ldarg_0)
-    //         gen.Emit(OpCodes.Ldfld, fieldB)
-    //     | 6 ->
-    //         gen.Emit(OpCodes.Ldarg_0)
-    //         gen.Emit(OpCodes.Ldfld, fieldC)
-    //     | bad -> failwithf "Invalid combo operand in %d" operand
-
-    // let emitADivCombo operand =
-    //     gen.Emit(OpCodes.Ldarg_0)
-    //     gen.Emit(OpCodes.Ldfld, fieldA)
-    //     gen.Emit(OpCodes.Ldc_I8, 1)
-    //     emitCombo operand
-    //     gen.Emit(OpCodes.Shl)
-    //     gen.Emit(OpCodes.Div)
 
     // for i in 0..0 do
     //     let operand = program[i+1]
@@ -208,28 +205,23 @@ let compile (program: int array) =
     // gen.Emit(OpCodes.Ldloc, iout)
 
     // Move all the local variables back into fields.
-    gen.Emit(OpCodes.Ldarg_0)
-    gen.Emit(OpCodes.Ldloc, A);
+    gen.Emit(OpCodes.Ldarg_1)
+    emitLoadA()
     gen.Emit(OpCodes.Stfld, fieldA)
 
-    gen.Emit(OpCodes.Ldarg_0)
-    gen.Emit(OpCodes.Ldloc, B);
+    gen.Emit(OpCodes.Ldarg_1)
+    emitLoadB()
     gen.Emit(OpCodes.Stfld, fieldB)
 
-    gen.Emit(OpCodes.Ldarg_0)
-    gen.Emit(OpCodes.Ldloc, C);
+    gen.Emit(OpCodes.Ldarg_1)
+    emitLoadC()
     gen.Emit(OpCodes.Stfld, fieldC)
 
-    gen.Emit(OpCodes.Ldarg_0)
-    gen.Emit(OpCodes.Ldloc, outI);
-    gen.Emit(OpCodes.Stfld, fieldOutI)
-
+    // Return I
+    emitLoadI()
     gen.Emit(OpCodes.Ret)
-    
-    let newType = typeBuilder.CreateType()
-    fun (regs: Registers) ->
-        let instance = Activator.CreateInstance()
-        method.Invoke(instance, null)
+
+    method    
 
 let part2() =
     let regs, program = parseInput "input.txt"
@@ -245,8 +237,19 @@ let part2() =
             nextPrint <- nextPrint + 1_000_000
     printfn "%A" regs
 
+let runCompiled (regs: Registers, program: int array) =
+    let compiled = compile program
+    let outBuffer = Array.create 100 0
+    let args  = [| box outBuffer; regs |]
+    let outLen = compiled.Invoke(null, args)
+    let outList =
+        outBuffer
+        |> Array.take (unbox outLen)
+        |> Array.toList
+    regs, outList
+
 let tests() =
-    let regs, out = runMachine ({ zeros with C = 9}, [|2; 6|])
+    let regs, out = runCompiled ({ zeros with C = 9}, [|2; 6|])
     assert(regs.B = 1)
 
     let regs, out = runMachine ({ zeros with A = 10}, [|5; 0; 5; 1; 5; 4|])
@@ -261,8 +264,6 @@ let tests() =
 
     let regs, out = runMachine ({ zeros with B = 2024; C = 43690}, [|4; 0|])
     assert(regs.B = 44354)
-
-
 
 [<EntryPoint>]
 let main argv =
