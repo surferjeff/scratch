@@ -12,6 +12,53 @@ type Registers = {
     C: Reg
     IP: Reg  // Instruction pointer
 }
+
+type Machine(regs: Registers) =
+    let mutable A = regs.A
+    let mutable B = regs.B
+    let mutable C = regs.C
+
+    let outBuf = Array.create 20 0
+    let mutable outI = 0
+
+    member this.combo(operand: int) =
+        match operand with
+        | 0 | 1 | 2 | 3 -> operand
+        | 4 -> int32 A
+        | 5 -> int32 B
+        | 6 -> int32 C
+        | bad -> failwithf "Invalid combo operand in %d" operand
+    
+    member this.op0adv operand = A <- A / (1L <<< this.combo(operand)); -2
+    member this.op1bxl operand = B <- B ^^^ operand; -2
+    member this.op2bst operand = B <- this.combo(operand) &&& 0b0111; -2
+    member this.op3jnz operand = if A = 0 then -2 else operand
+    member this.op4bxc operand = B <- B ^^^ C; -2
+    member this.op5out operand =
+        outBuf[outI] <- this.combo(operand) &&& 0b0111
+        outI <- outI + 1
+        -2
+    member this.op6bdv operand = B <- A / (1L <<< this.combo(operand)); -2
+    member this.op7cdv operand = C <- A / (1L <<< this.combo(operand)); -2
+
+    member this.ops = [| this.op0adv; this.op1bxl; this.op2bst; this.op3jnz;
+        this.op4bxc; this.op5out; this.op6bdv; this.op7cdv |]
+
+    member this.result() =
+        { A = A; B = B; C = C; IP = 0}, outBuf[0..outI-1] |> Array.toList
+        
+
+let runMachine (regs: Registers, program: int array) =
+    let machine = Machine(regs)
+    let mutable ip = 0
+    while ip < program.Length do
+        let jmp = machine.ops[program[ip]] program[ip+1]
+        if jmp < 0 then
+            ip <- ip - jmp
+        else
+            ip <- jmp
+    machine.result()
+
 let zeros = { A = 0; B = 0; C = 0; IP = 0}
 
 let parseInput path =
@@ -161,7 +208,6 @@ let runCompiled (regs: Registers, program: int array) =
         |> Array.toList
     regs, outList
 
-
 let operate (program: int array) (regs: Registers, out: int list)
         : (Registers * int list) =
     let opCode, operand = program[int regs.IP], program[int regs.IP+1]
@@ -250,7 +296,24 @@ let compiledTests() =
     assert(regs.B = 1)
 
 
-let failingTests() = ()
+let failingTests() =
+    let regs, out = runMachine ({ zeros with C = 9}, [|2; 6|])
+    assert(regs.B = 1)
+
+    let regs, out = runMachine ({ zeros with A = 10}, [|5; 0; 5; 1; 5; 4|])
+    assert(out = [0; 1; 2])
+
+    let regs, out = runMachine ({ zeros with A = 2024}, [|0;1;5;4;3;0|])
+    assert(out = [4;2;5;6;7;7;7;7;3;1;0])
+    assert(regs.A = 0)
+
+    let regs, out = runMachine ({ zeros with B = 29}, [|1; 7|])
+    assert(regs.B = 26)
+
+    let regs, out = runMachine ({ zeros with B = 2024; C = 43690}, [|4; 0|])
+    assert(regs.B = 44354)
+
+
 
 [<EntryPoint>]
 let main argv =
@@ -262,6 +325,6 @@ let main argv =
             out |> Seq.map string |> String.concat "," |> printfn "part1: %s"
     else
         failingTests()
-        compiledTests()
+        // compiledTests()
         tests()
     0
