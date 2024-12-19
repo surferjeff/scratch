@@ -68,7 +68,7 @@ let parseInput path =
     let program = ResizeArray<int>()
     for m in File.ReadAllText path |> rx.Matches do
         if m.Groups["regname"].Success then
-            let regValue = int64 m.Groups["regvalue"].Value
+            let regValue = reg m.Groups["regvalue"].Value
             match m.Groups["regname"].Value with
             | "A" -> regs <- { regs with A = regValue }
             | "B" -> regs <- { regs with B = regValue }
