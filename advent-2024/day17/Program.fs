@@ -6,7 +6,7 @@ open System
 
 type Reg = int64
 let reg n = int64 n
-[<Struct>]
+
 type Registers = {
     mutable A: Reg
     mutable B: Reg
