@@ -2,7 +2,6 @@
 open System.Text.RegularExpressions
 open System.Reflection
 open System.Reflection.Emit
-open System
 
 type Reg = int64
 let reg n = int64 n
@@ -12,52 +11,6 @@ type Registers = {
     mutable B: Reg
     mutable C: Reg
 }
-
-type Machine(regs: Registers) =
-    let mutable A = regs.A
-    let mutable B = regs.B
-    let mutable C = regs.C
-
-    let outBuf = Array.create 20 0
-    let mutable outI = 0
-
-    member this.combo(operand: int) =
-        match operand with
-        | 0 | 1 | 2 | 3 -> operand
-        | 4 -> int32 A
-        | 5 -> int32 B
-        | 6 -> int32 C
-        | bad -> failwithf "Invalid combo operand in %d" operand
-    
-    member this.op0adv operand = A <- A / (1L <<< this.combo(operand)); -2
-    member this.op1bxl operand = B <- B ^^^ operand; -2
-    member this.op2bst operand = B <- this.combo(operand) &&& 0b0111; -2
-    member this.op3jnz operand = if A = 0 then -2 else operand
-    member this.op4bxc operand = B <- B ^^^ C; -2
-    member this.op5out operand =
-        outBuf[outI] <- this.combo(operand) &&& 0b0111
-        outI <- outI + 1
-        -2
-    member this.op6bdv operand = B <- A / (1L <<< this.combo(operand)); -2
-    member this.op7cdv operand = C <- A / (1L <<< this.combo(operand)); -2
-
-    member this.ops = [| this.op0adv; this.op1bxl; this.op2bst; this.op3jnz;
-        this.op4bxc; this.op5out; this.op6bdv; this.op7cdv |]
-
-    member this.result() =
-        { A = A; B = B; C = C }, outBuf[0..outI-1]
-        
-
-let runMachine (regs: Registers, program: int array) =
-    let machine = Machine(regs)
-    let mutable ip = 0
-    while ip < program.Length do
-        let jmp = machine.ops[program[ip]] program[ip+1]
-        if jmp < 0 then
-            ip <- ip - jmp
-        else
-            ip <- jmp
-    machine.result()
 
 let zeros = { A = 0; B = 0; C = 0 }
 
