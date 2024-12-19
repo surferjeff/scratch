@@ -349,6 +349,9 @@ let failingTests() = ()
 let main argv =
     if argv.Length > 0 then
         if argv[0] = "part2" then
+            // runCompiled is more than 100 times faster than than runMachine,
+            // but it's still too slow to find the answer.
+            // Also, the loop doesn't properly terminate on the right answer.
             part2()
         else
             let _, out = parseInput argv[0] |> runCompiled
