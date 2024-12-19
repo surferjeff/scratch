@@ -129,9 +129,11 @@ let compile (program: int array) (loop: bool) =
     let copyA = gen.DeclareLocal(typeof<int64>)
     emitLoadA()
     gen.Emit(OpCodes.Stloc, copyA)
-    let nextPrintA = gen.DeclareLocal(typeof<int64>)
+    let loopLimit = gen.DeclareLocal(typeof<int64>)
     emitLoadA()
-    gen.Emit(OpCodes.Stloc, nextPrintA)
+    gen.Emit(OpCodes.Ldc_I8, 100_000_000L)
+    gen.Emit(OpCodes.Add)
+    gen.Emit(OpCodes.Stloc, loopLimit)
 
     let copyB = gen.DeclareLocal(typeof<int64>)
     emitLoadB()
@@ -254,6 +256,9 @@ let compile (program: int array) (loop: bool) =
         gen.Emit(OpCodes.Ldloc, copyA)
         emitStoreA()
 
+    let labelReturn = gen.DefineLabel()
+    gen.MarkLabel(labelReturn)
+
     // Move all the local variables back into fields.
     gen.Emit(OpCodes.Ldarg_1)
     emitLoadA()
@@ -275,24 +280,6 @@ let compile (program: int array) (loop: bool) =
     // Reset loop
     gen.MarkLabel(labelReset)
 
-    // Print A occaisonally.
-    // let labelSkipPrintA = gen.DefineLabel()
-    // gen.Emit(OpCodes.Ldloc, copyA)
-    // gen.Emit(OpCodes.Ldloc, nextPrintA)
-    // gen.Emit(OpCodes.Sub)
-    // gen.Emit(OpCodes.Brtrue, labelSkipPrintA)
-
-    // gen.Emit(OpCodes.Ldloc, nextPrintA)
-    // gen.Emit(OpCodes.Ldc_I8, 1_000_000L)
-    // gen.Emit(OpCodes.Add)
-    // gen.Emit(OpCodes.Stloc, nextPrintA)
-
-    // gen.Emit(OpCodes.Ldloc, copyA)
-    // gen.Emit(OpCodes.Stfld, fieldA)
-    // gen.EmitWriteLine(fieldA)
-    
-    // gen.MarkLabel(labelSkipPrintA)
-
     // Restore A, B, C from copies.  Increment A.
     gen.Emit(OpCodes.Ldloc, copyA)
     gen.Emit(OpCodes.Ldc_I8, 1L)
@@ -311,6 +298,10 @@ let compile (program: int array) (loop: bool) =
     gen.Emit(OpCodes.Ldc_I4_0)
     emitStoreI()
 
+    emitLoadA()
+    gen.Emit(OpCodes.Ldloc, loopLimit)
+    gen.Emit(OpCodes.Beq, labelReturn)
+
     gen.Emit(OpCodes.Br, labels[0])
 
     method    
@@ -319,8 +310,12 @@ let part2() =
     let regs, program = parseInput "input.txt"
     let compiled = compile program true
     let args = [| box program; regs|]
-    let outLen = compiled.Invoke(null, args)
-    printfn "%A" regs
+    let mutable found = false
+    while not found do
+        let outLen = compiled.Invoke(null, args)
+        let outLen = int (unbox outLen)
+        found <- outLen = program.Length
+        printfn "%d" regs.A
 
 let runCompiled (regs: Registers, program: int array) =
     let compiled = compile program false
