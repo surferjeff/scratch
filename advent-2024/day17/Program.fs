@@ -131,7 +131,7 @@ let compile (program: int array) (loop: bool) =
     gen.Emit(OpCodes.Stloc, copyA)
     let loopLimit = gen.DeclareLocal(typeof<int64>)
     emitLoadA()
-    gen.Emit(OpCodes.Ldc_I8, 100_000_000L)
+    gen.Emit(OpCodes.Ldc_I8, 1_000_000_000L)
     gen.Emit(OpCodes.Add)
     gen.Emit(OpCodes.Stloc, loopLimit)
 
