@@ -143,79 +143,70 @@ let compile (program: int array) =
     let labels = { 0..20 } |> Seq.map (fun _ -> gen.DefineLabel() ) |> Seq.toArray
     let mutable ilabel = 0
 
-    // for i in 0..0 do
-    //     let operand = program[i+1]
-    //     if ilabel < labels.Length then
-    //         gen.MarkLabel(labels[ilabel])
-    //         ilabel <- ilabel + 1
-    //     match program[i] with
-    //     | 0 ->
-    //         gen.Emit(OpCodes.Ldarg_0)
-    //         emitADivCombo operand
-    //         gen.Emit(OpCodes.Stfld, fieldA)
-    //     | 1 ->
-    //         gen.Emit(OpCodes.Ldarg_0)
-    //         gen.Emit(OpCodes.Ldarg_0)
-    //         gen.Emit(OpCodes.Ldfld, fieldB)
-    //         gen.Emit(OpCodes.Ldc_I8, operand)
-    //         gen.Emit(OpCodes.Xor)
-    //         gen.Emit(OpCodes.Stfld, fieldB)
-    //     | 2 ->
-    //         gen.Emit(OpCodes.Ldarg_0)
-    //         emitCombo operand
-    //         gen.Emit(OpCodes.Ldc_I8, 0x0111)
-    //         gen.Emit(OpCodes.And)
-    //         gen.Emit(OpCodes.Stfld, fieldB)            
-    //     | 3 ->
-    //         emitLoadA()
-    //         let skip = gen.DefineLabel()
-    //         gen.Emit(OpCodes.Ldc_I8, 0)
-    //         gen.Emit(OpCodes.Beq, skip)
-    //         gen.Emit(OpCodes.Br, labels[operand / 2])
-    //         gen.MarkLabel(skip)            
-    //     | 4 ->
-    //         emitBeginStoreB()
-    //         emitLoadB()
-    //         emitLoadC()
-    //         gen.Emit(OpCodes.Xor)
-    //         emitCommitStoreRegister()
-    //     | 5 ->
-    //         gen.Emit(OpCodes.Ldarg_1)
-    //         gen.Emit(OpCodes.Ldloc, iout)
+    for i in 0..2..program.Length-1 do
+        let operand = program[i+1]
+        if ilabel < labels.Length then
+            gen.MarkLabel(labels[ilabel])
+            ilabel <- ilabel + 1
+        match program[i] with
+        | 0 ->
+            emitADivCombo operand
+            emitStoreA()
+        | 1 ->
+            emitLoadB()
+            gen.Emit(OpCodes.Ldc_I8, operand)
+            gen.Emit(OpCodes.Xor)
+            emitStoreB()
+        | 2 ->
+            emitCombo operand
+            gen.Emit(OpCodes.Ldc_I8, 0x0111)
+            gen.Emit(OpCodes.And)
+            emitStoreB()
+        | 3 ->
+            emitLoadA()
+            let skip = gen.DefineLabel()
+            gen.Emit(OpCodes.Ldc_I8, 0)
+            gen.Emit(OpCodes.Beq, skip)
+            gen.Emit(OpCodes.Br, labels[operand / 2])
+            gen.MarkLabel(skip)
+        | 4 ->
+            emitLoadB()
+            emitLoadC()
+            gen.Emit(OpCodes.Xor)
+            emitStoreB()
+        | 5 ->
+            gen.Emit(OpCodes.Ldarg_0)
+            emitLoadI()
+            emitCombo operand
+            gen.Emit(OpCodes.Ldc_I8, 0x0111)
+            gen.Emit(OpCodes.And)
+            gen.Emit(OpCodes.Stelem_I4)
 
-    //         emitCombo operand
-    //         gen.Emit(OpCodes.Ldc_I8, 0x0111)
-    //         gen.Emit(OpCodes.And)
+            emitLoadI()
+            gen.Emit(OpCodes.Ldc_I8, 1)
+            gen.Emit(OpCodes.Add)
+            emitStoreI()
+        | 6 -> 
+            emitADivCombo operand
+            emitStoreB()
+        | 7 -> 
+            emitADivCombo operand
+            emitStoreC()
 
-    //         gen.Emit(OpCodes.Stelem_I4)
-
-    //         gen.Emit(OpCodes.Ldloc, iout)
-    //         gen.Emit(OpCodes.Ldc_I8, 1)
-    //         gen.Emit(OpCodes.Add)
-    //         gen.Emit(OpCodes.Stloc, iout)
-    //     | 6 -> 
-    //         emitBeginStoreB()
-    //         emitADivCombo gen operand
-    //         emitCommitStoreRegister()
-    //     | 7 -> 
-    //         emitBeginStoreC()
-    //         emitADivCombo gen operand
-    //         emitCommitStoreRegister()
-    //     | bad -> failwithf "Bad op code %d" program[i]
-    // gen.Emit(OpCodes.Ldloc, iout)
+        | bad -> failwithf "Bad op code %d" program[i]
 
     // Move all the local variables back into fields.
     gen.Emit(OpCodes.Ldarg_1)
     emitLoadA()
     gen.Emit(OpCodes.Stfld, fieldA)
 
-    // gen.Emit(OpCodes.Ldarg_1)
-    // emitLoadB()
-    // gen.Emit(OpCodes.Stfld, fieldB)
+    gen.Emit(OpCodes.Ldarg_1)
+    emitLoadB()
+    gen.Emit(OpCodes.Stfld, fieldB)
 
-    // gen.Emit(OpCodes.Ldarg_1)
-    // emitLoadC()
-    // gen.Emit(OpCodes.Stfld, fieldC)
+    gen.Emit(OpCodes.Ldarg_1)
+    emitLoadC()
+    gen.Emit(OpCodes.Stfld, fieldC)
 
     // Return I
     emitLoadI()
