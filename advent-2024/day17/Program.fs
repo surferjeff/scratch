@@ -92,11 +92,14 @@ let compile (program: int array) =
     let fieldB = typeof<Registers>.GetField("B@", fieldFlags)
     let fieldC = typeof<Registers>.GetField("C@", fieldFlags)
 
+    let setFieldA = typeof<Registers>.GetProperty("A", fieldFlags).GetSetMethod();
+
     // Local variables.
-    // 0: Register A
-    // 1: Register B
-    // 2: Register C
+    let locA = gen.DeclareLocal(typeof<int64>);
+    let locB = gen.DeclareLocal(typeof<int64>);
+    let locC = gen.DeclareLocal(typeof<int64>);
     // 3: I, index into outBuf.
+    let locI = gen.DeclareLocal(typeof<int32>);
 
     let emitLoadA() = gen.Emit(OpCodes.Ldloc_0)
     let emitLoadB() = gen.Emit(OpCodes.Ldloc_1)
@@ -123,7 +126,6 @@ let compile (program: int array) =
 
     gen.Emit(OpCodes.Ldc_I4_0)
     emitStoreI()
-
 
     let emitCombo (operand: int) =
         match operand with
@@ -207,15 +209,15 @@ let compile (program: int array) =
     // Move all the local variables back into fields.
     gen.Emit(OpCodes.Ldarg_1)
     emitLoadA()
-    gen.Emit(OpCodes.Stfld, fieldA)
+    gen.Emit(OpCodes.Callvirt, setFieldA);
 
-    gen.Emit(OpCodes.Ldarg_1)
-    emitLoadB()
-    gen.Emit(OpCodes.Stfld, fieldB)
+    // gen.Emit(OpCodes.Ldarg_1)
+    // emitLoadB()
+    // gen.Emit(OpCodes.Stfld, fieldB)
 
-    gen.Emit(OpCodes.Ldarg_1)
-    emitLoadC()
-    gen.Emit(OpCodes.Stfld, fieldC)
+    // gen.Emit(OpCodes.Ldarg_1)
+    // emitLoadC()
+    // gen.Emit(OpCodes.Stfld, fieldC)
 
     // Return I
     emitLoadI()
