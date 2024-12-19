@@ -99,15 +99,15 @@ let compile (program: int array) =
     // 3: I, index into outBuf.
     let locI = gen.DeclareLocal(typeof<int32>);
 
-    let emitLoadA() = gen.Emit(OpCodes.Ldloc_0)
-    let emitLoadB() = gen.Emit(OpCodes.Ldloc_1)
-    let emitLoadC() = gen.Emit(OpCodes.Ldloc_2)
-    let emitLoadI() = gen.Emit(OpCodes.Ldloc_3)
+    let emitLoadA() = gen.Emit(OpCodes.Ldloc, locA)
+    let emitLoadB() = gen.Emit(OpCodes.Ldloc, locB)
+    let emitLoadC() = gen.Emit(OpCodes.Ldloc, locC)
+    let emitLoadI() = gen.Emit(OpCodes.Ldloc, locI)
 
-    let emitStoreA() = gen.Emit(OpCodes.Stloc_0)
-    let emitStoreB() = gen.Emit(OpCodes.Stloc_1)
-    let emitStoreC() = gen.Emit(OpCodes.Stloc_2)
-    let emitStoreI() = gen.Emit(OpCodes.Stloc_3)
+    let emitStoreA() = gen.Emit(OpCodes.Stloc, locA)
+    let emitStoreB() = gen.Emit(OpCodes.Stloc, locB)
+    let emitStoreC() = gen.Emit(OpCodes.Stloc, locC)
+    let emitStoreI() = gen.Emit(OpCodes.Stloc, locI)
 
     // Initialize local variables.
     gen.Emit(OpCodes.Ldarg_1)
@@ -159,7 +159,7 @@ let compile (program: int array) =
             emitStoreB()
         | 2 ->
             emitCombo operand
-            gen.Emit(OpCodes.Ldc_I8, 0x0111)
+            gen.Emit(OpCodes.Ldc_I8, 0x0111L)
             gen.Emit(OpCodes.And)
             emitStoreB()
         | 3 ->
