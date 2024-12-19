@@ -265,7 +265,7 @@ let main argv =
         if argv[0] = "part2" then
             part2()
         else
-            let _, out = parseInput argv[0] |> runMachine
+            let _, out = parseInput argv[0] |> runCompiled
             out |> Seq.map string |> String.concat "," |> printfn "part1: %s"
     else
         failingTests()
