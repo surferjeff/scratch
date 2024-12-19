@@ -92,8 +92,6 @@ let compile (program: int array) =
     let fieldB = typeof<Registers>.GetField("B@", fieldFlags)
     let fieldC = typeof<Registers>.GetField("C@", fieldFlags)
 
-    let setFieldA = typeof<Registers>.GetProperty("A", fieldFlags).GetSetMethod();
-
     // Local variables.
     let locA = gen.DeclareLocal(typeof<int64>);
     let locB = gen.DeclareLocal(typeof<int64>);
@@ -209,7 +207,7 @@ let compile (program: int array) =
     // Move all the local variables back into fields.
     gen.Emit(OpCodes.Ldarg_1)
     emitLoadA()
-    gen.Emit(OpCodes.Callvirt, setFieldA);
+    gen.Emit(OpCodes.Stfld, fieldA)
 
     // gen.Emit(OpCodes.Ldarg_1)
     // emitLoadB()
