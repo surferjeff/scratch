@@ -79,7 +79,7 @@ let parseInput path =
 
     regs, program.ToArray()
 
-let compile (program: int array) =
+let compile (program: int array) (loop: bool) =
     let assemblyName = new AssemblyName("Compiler")
     let assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run)
     let moduleBuilder = assemblyBuilder.DefineDynamicModule("Compiler")
@@ -125,6 +125,20 @@ let compile (program: int array) =
     gen.Emit(OpCodes.Ldc_I4_0)
     emitStoreI()
 
+    // Store copies of A, B and C so we can reload them when we loop.
+    let copyA = gen.DeclareLocal(typeof<int64>)
+    emitLoadA()
+    gen.Emit(OpCodes.Stloc, copyA)
+
+    let copyB = gen.DeclareLocal(typeof<int64>)
+    emitLoadB()
+    gen.Emit(OpCodes.Stloc, copyB)
+
+    let copyC = gen.DeclareLocal(typeof<int64>)
+    emitLoadC()
+    gen.Emit(OpCodes.Stloc, copyC)
+
+    // Helper functions.
     let emitCombo (operand: int) =
         match operand with
         | 0 | 1 | 2 | 3 -> gen.Emit(OpCodes.Ldc_I8, int64 operand)
@@ -141,6 +155,7 @@ let compile (program: int array) =
         gen.Emit(OpCodes.Shl)
         gen.Emit(OpCodes.Div)
 
+    let labelReset = gen.DefineLabel()
     let labels = { 0..20 } |> Seq.map (fun _ -> gen.DefineLabel() ) |> Seq.toArray
     let mutable ilabel = 0
 
@@ -175,16 +190,34 @@ let compile (program: int array) =
             emitLoadC()
             gen.Emit(OpCodes.Xor)
             emitStoreB()
-        | 5 ->
-            gen.Emit(OpCodes.Ldarg_0)
-            emitLoadI()
-            gen.Emit(OpCodes.Conv_I8)
-            emitCombo operand
-            gen.Emit(OpCodes.Ldc_I8, 0b0111L)
-            gen.Emit(OpCodes.And)
-            gen.Emit(OpCodes.Conv_I4)
-            gen.Emit(OpCodes.Stelem_I4)
+        | 5 ->  // Output
+            if loop then
+                // Compare output to the array.
+                emitCombo operand
+                gen.Emit(OpCodes.Ldc_I8, 0b0111L)
+                gen.Emit(OpCodes.And)
+                gen.Emit(OpCodes.Conv_I4)
 
+                gen.Emit(OpCodes.Ldarg_0)
+                emitLoadI()
+                gen.Emit(OpCodes.Ldelem_I4)
+
+                // Next iteration of the loop if not equal.
+                gen.Emit(OpCodes.Sub)
+                gen.Emit(OpCodes.Brtrue, labelReset)
+
+            else
+                // Write output
+                gen.Emit(OpCodes.Ldarg_0)
+                emitLoadI()
+                gen.Emit(OpCodes.Conv_I8)
+                emitCombo operand
+                gen.Emit(OpCodes.Ldc_I8, 0b0111L)
+                gen.Emit(OpCodes.And)
+                gen.Emit(OpCodes.Conv_I4)
+                gen.Emit(OpCodes.Stelem_I4)
+
+            // Increment I
             emitLoadI()
             gen.Emit(OpCodes.Ldc_I4, 1)
             gen.Emit(OpCodes.Add)
@@ -197,6 +230,19 @@ let compile (program: int array) =
             emitStoreC()
 
         | bad -> failwithf "Bad op code %d" program[i]
+
+    if loop then
+        // Compare I to the length of the array.
+        gen.Emit(OpCodes.Ldarg_0)
+        gen.Emit(OpCodes.Ldlen)
+        emitLoadI()
+        gen.Emit(OpCodes.Sub)
+        gen.Emit(OpCodes.Brtrue, labelReset)
+
+        // Lengths match, program matches!
+        // Store the A that generated the program.
+        gen.Emit(OpCodes.Ldloc, copyA)
+        emitStoreA()
 
     // Move all the local variables back into fields.
     gen.Emit(OpCodes.Ldarg_1)
@@ -215,6 +261,30 @@ let compile (program: int array) =
     emitLoadI()
     gen.Emit(OpCodes.Ret)
 
+    /////////////////////////////////////////////////////////
+    // Reset loop
+    gen.MarkLabel(labelReset)
+    
+    // Restore A, B, C from copies.  Increment A.
+    gen.Emit(OpCodes.Ldloc, copyA)
+    gen.Emit(OpCodes.Ldc_I8, 1L)
+    gen.Emit(OpCodes.Add)
+    emitStoreA()
+    emitLoadA()
+    gen.Emit(OpCodes.Stloc, copyA)
+
+    gen.Emit(OpCodes.Ldloc, copyB)
+    emitStoreB()
+
+    gen.Emit(OpCodes.Ldloc, copyC)
+    emitStoreC()
+
+    // Reset I
+    gen.Emit(OpCodes.Ldc_I4_0)
+    emitStoreI()
+
+    gen.Emit(OpCodes.Br, labels[0])
+
     method    
 
 let part2() =
@@ -232,7 +302,7 @@ let part2() =
     printfn "%A" regs
 
 let runCompiled (regs: Registers, program: int array) =
-    let compiled = compile program
+    let compiled = compile program false
     let outBuffer = Array.create 100 0
     let args  = [| box outBuffer; regs |]
     let outLen = compiled.Invoke(null, args)
