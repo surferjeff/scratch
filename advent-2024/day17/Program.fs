@@ -129,6 +129,9 @@ let compile (program: int array) (loop: bool) =
     let copyA = gen.DeclareLocal(typeof<int64>)
     emitLoadA()
     gen.Emit(OpCodes.Stloc, copyA)
+    let nextPrintA = gen.DeclareLocal(typeof<int64>)
+    emitLoadA()
+    gen.Emit(OpCodes.Stloc, nextPrintA)
 
     let copyB = gen.DeclareLocal(typeof<int64>)
     emitLoadB()
@@ -192,6 +195,12 @@ let compile (program: int array) (loop: bool) =
             emitStoreB()
         | 5 ->  // Output
             if loop then
+                // Has I exceeded the length of the array?
+                emitLoadI()
+                gen.Emit(OpCodes.Ldarg_0)
+                gen.Emit(OpCodes.Ldlen)
+                gen.Emit(OpCodes.Bge, labelReset)
+
                 // Compare output to the array.
                 emitCombo operand
                 gen.Emit(OpCodes.Ldc_I8, 0b0111L)
@@ -219,9 +228,10 @@ let compile (program: int array) (loop: bool) =
 
             // Increment I
             emitLoadI()
-            gen.Emit(OpCodes.Ldc_I4, 1)
+            gen.Emit(OpCodes.Ldc_I4_1)
             gen.Emit(OpCodes.Add)
             emitStoreI()
+
         | 6 -> 
             emitADivCombo operand
             emitStoreB()
@@ -264,7 +274,25 @@ let compile (program: int array) (loop: bool) =
     /////////////////////////////////////////////////////////
     // Reset loop
     gen.MarkLabel(labelReset)
+
+    // Print A occaisonally.
+    // let labelSkipPrintA = gen.DefineLabel()
+    // gen.Emit(OpCodes.Ldloc, copyA)
+    // gen.Emit(OpCodes.Ldloc, nextPrintA)
+    // gen.Emit(OpCodes.Sub)
+    // gen.Emit(OpCodes.Brtrue, labelSkipPrintA)
+
+    // gen.Emit(OpCodes.Ldloc, nextPrintA)
+    // gen.Emit(OpCodes.Ldc_I8, 1_000_000L)
+    // gen.Emit(OpCodes.Add)
+    // gen.Emit(OpCodes.Stloc, nextPrintA)
+
+    // gen.Emit(OpCodes.Ldloc, copyA)
+    // gen.Emit(OpCodes.Stfld, fieldA)
+    // gen.EmitWriteLine(fieldA)
     
+    // gen.MarkLabel(labelSkipPrintA)
+
     // Restore A, B, C from copies.  Increment A.
     gen.Emit(OpCodes.Ldloc, copyA)
     gen.Emit(OpCodes.Ldc_I8, 1L)
@@ -289,16 +317,9 @@ let compile (program: int array) (loop: bool) =
 
 let part2() =
     let regs, program = parseInput "input.txt"
-    let mutable found = false
-    let mutable regs = { regs with A = 0 }
-    let mutable nextPrint = 1_000_000
-    while not found do
-        regs <- { regs with A = regs.A + 1L }
-        let _, out = runMachine (regs, program)
-        found <- out = program
-        if regs.A = nextPrint then
-            printfn "%d" nextPrint
-            nextPrint <- nextPrint + 1_000_000
+    let compiled = compile program true
+    let args = [| box program; regs|]
+    let outLen = compiled.Invoke(null, args)
     printfn "%A" regs
 
 let runCompiled (regs: Registers, program: int array) =
