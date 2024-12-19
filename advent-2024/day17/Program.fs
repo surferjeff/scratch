@@ -127,7 +127,7 @@ let compile (program: int array) =
 
     let emitCombo (operand: int) =
         match operand with
-        | 0 | 1 | 2 | 3 -> gen.Emit(OpCodes.Ldc_I8, operand)
+        | 0 | 1 | 2 | 3 -> gen.Emit(OpCodes.Ldc_I8, int64 operand)
         | 4 -> emitLoadA()
         | 5 -> emitLoadB()
         | 6 -> emitLoadC()
@@ -154,7 +154,7 @@ let compile (program: int array) =
             emitStoreA()
         | 1 ->
             emitLoadB()
-            gen.Emit(OpCodes.Ldc_I8, operand)
+            gen.Emit(OpCodes.Ldc_I8, int64 operand)
             gen.Emit(OpCodes.Xor)
             emitStoreB()
         | 2 ->
@@ -165,7 +165,7 @@ let compile (program: int array) =
         | 3 ->
             emitLoadA()
             let skip = gen.DefineLabel()
-            gen.Emit(OpCodes.Ldc_I8, 0)
+            gen.Emit(OpCodes.Ldc_I8, 0L)
             gen.Emit(OpCodes.Beq, skip)
             gen.Emit(OpCodes.Br, labels[operand / 2])
             gen.MarkLabel(skip)
@@ -177,13 +177,15 @@ let compile (program: int array) =
         | 5 ->
             gen.Emit(OpCodes.Ldarg_0)
             emitLoadI()
+            gen.Emit(OpCodes.Conv_I8)
             emitCombo operand
-            gen.Emit(OpCodes.Ldc_I8, 0x0111)
+            gen.Emit(OpCodes.Conv_I4)
+            gen.Emit(OpCodes.Ldc_I4, 0x0111)
             gen.Emit(OpCodes.And)
             gen.Emit(OpCodes.Stelem_I4)
 
             emitLoadI()
-            gen.Emit(OpCodes.Ldc_I8, 1)
+            gen.Emit(OpCodes.Ldc_I4, 1)
             gen.Emit(OpCodes.Add)
             emitStoreI()
         | 6 -> 
@@ -233,18 +235,12 @@ let runCompiled (regs: Registers, program: int array) =
     let outBuffer = Array.create 100 0
     let args  = [| box outBuffer; regs |]
     let outLen = compiled.Invoke(null, args)
-    let outList =
-        outBuffer
-        |> Array.take (unbox outLen)
-        |> Array.toList
-    regs, outList
+    let outLen = int (unbox outLen)
+    regs, outBuffer[0..(outLen - 1)]
 
 let tests() =
     let regs, out = runCompiled ({ zeros with C = 9}, [|2; 6|])
     assert(regs.B = 1)
-
-    let regs, out = runMachine ({ zeros with A = 10}, [|5; 0; 5; 1; 5; 4|])
-    assert(out = [|0; 1; 2|])
 
     let regs, out = runMachine ({ zeros with A = 2024}, [|0;1;5;4;3;0|])
     assert(out = [|4;2;5;6;7;7;7;7;3;1;0|])
@@ -256,6 +252,11 @@ let tests() =
     let regs, out = runMachine ({ zeros with B = 2024; C = 43690}, [|4; 0|])
     assert(regs.B = 44354)
 
+let failingTests() =
+    let regs, out = runCompiled ({ zeros with A = 10}, [|5; 0; 5; 1; 5; 4|])
+    assert(out = [|0; 1; 2|])
+
+
 [<EntryPoint>]
 let main argv =
     if argv.Length > 0 then
@@ -265,6 +266,6 @@ let main argv =
             let _, out = parseInput argv[0] |> runMachine
             out |> Seq.map string |> String.concat "," |> printfn "part1: %s"
     else
-        // compiledTests()
+        failingTests()
         tests()
     0
