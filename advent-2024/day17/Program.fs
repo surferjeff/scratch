@@ -160,7 +160,7 @@ let compile (program: int array) =
             emitStoreB()
         | 2 ->
             emitCombo operand
-            gen.Emit(OpCodes.Ldc_I8, 0x0111L)
+            gen.Emit(OpCodes.Ldc_I8, 0b0111L)
             gen.Emit(OpCodes.And)
             emitStoreB()
         | 3 ->
