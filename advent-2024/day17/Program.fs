@@ -307,15 +307,28 @@ let compile (program: int array) (loopCount: int64) =
     method    
 
 let part2 path =
-    let regs, program = parseInput path
-    let compiled = compile program 1_000_000_000
+    let mutable regs, program = parseInput path
+    let loopCount = 200_000_000L
+    let compiled = compile program loopCount
     let args = [| box program; regs|]
     let mutable found = false
     while not found do
-        let outLen = compiled.Invoke(null, args)
-        let outLen = int (unbox outLen)
-        found <- outLen = program.Length
-        printfn "part2: %d" regs.A
+        let regsArray =
+            {0L..9L}
+            |> Seq.map (fun i -> { regs with A = regs.A + loopCount * i})
+            |> Seq.toArray
+        let outLengths = 
+            regsArray
+            |> Array.Parallel.map (fun regs ->
+                let args = [| box program; regs|]
+                int (unbox (compiled.Invoke(null, args))))
+        for i in 0..outLengths.Length-1 do
+            if outLengths[i] = program.Length then
+                printfn "part2: %d" regsArray[i].A
+                found <- true
+        if not found then
+            regs <- regsArray[regsArray.Length-1]
+            printfn "%d" regs.A
 
 let runCompiled (regs: Registers, program: int array) =
     let compiled = compile program 0
