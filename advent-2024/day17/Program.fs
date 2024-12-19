@@ -306,8 +306,8 @@ let compile (program: int array) (loop: bool) =
 
     method    
 
-let part2() =
-    let regs, program = parseInput "input.txt"
+let part2 path =
+    let regs, program = parseInput path
     let compiled = compile program true
     let args = [| box program; regs|]
     let mutable found = false
@@ -346,13 +346,15 @@ let failingTests() = ()
 
 
 [<EntryPoint>]
-let main argv =
+let main args =
+    let argv = args |> Array.filter ((<>) "-part2")
+    let p2 = argv.Length < args.Length
     if argv.Length > 0 then
-        if argv[0] = "part2" then
+        if p2 then
             // runCompiled is more than 100 times faster than than runMachine,
             // but it's still too slow to find the answer.
             // Also, the loop doesn't properly terminate on the right answer.
-            part2()
+            part2 argv[0]
         else
             let _, out = parseInput argv[0] |> runCompiled
             out |> Seq.map string |> String.concat "," |> printfn "part1: %s"
