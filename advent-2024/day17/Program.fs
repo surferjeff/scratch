@@ -180,9 +180,9 @@ let compile (program: int array) =
             emitLoadI()
             gen.Emit(OpCodes.Conv_I8)
             emitCombo operand
-            gen.Emit(OpCodes.Conv_I4)
-            gen.Emit(OpCodes.Ldc_I4, 0x0111)
+            gen.Emit(OpCodes.Ldc_I8, 0b0111L)
             gen.Emit(OpCodes.And)
+            gen.Emit(OpCodes.Conv_I4)
             gen.Emit(OpCodes.Stelem_I4)
 
             emitLoadI()
@@ -249,7 +249,6 @@ let tests() =
     let regs, out = runCompiled ({ zeros with B = 2024; C = 43690}, [|4; 0|])
     assert(regs.B = 44354)
 
-let failingTests() =
     let regs, out = runCompiled ({ zeros with A = 2024}, [|0;1;5;4;3;0|])
     assert(out = [|4;2;5;6;7;7;7;7;3;1;0|])
     assert(regs.A = 0)
@@ -257,8 +256,7 @@ let failingTests() =
     let regs, out = runCompiled ({ zeros with A = 10}, [|5; 0; 5; 1; 5; 4 |])
     assert(out = [|0; 1; 2|])
 
-
-
+let failingTests() = ()
 
 
 [<EntryPoint>]
