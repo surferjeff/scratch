@@ -79,7 +79,7 @@ let parseInput path =
 
     regs, program.ToArray()
 
-let compile (program: int array) (loop: bool) =
+let compile (program: int array) (loopCount: int64) =
     let assemblyName = new AssemblyName("Compiler")
     let assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run)
     let moduleBuilder = assemblyBuilder.DefineDynamicModule("Compiler")
@@ -131,7 +131,7 @@ let compile (program: int array) (loop: bool) =
     gen.Emit(OpCodes.Stloc, copyA)
     let loopLimit = gen.DeclareLocal(typeof<int64>)
     emitLoadA()
-    gen.Emit(OpCodes.Ldc_I8, 1_000_000_000L)
+    gen.Emit(OpCodes.Ldc_I8, loopCount)
     gen.Emit(OpCodes.Add)
     gen.Emit(OpCodes.Stloc, loopLimit)
 
@@ -196,7 +196,7 @@ let compile (program: int array) (loop: bool) =
             gen.Emit(OpCodes.Xor)
             emitStoreB()
         | 5 ->  // Output
-            if loop then
+            if loopCount > 0 then
                 // Has I exceeded the length of the array?
                 emitLoadI()
                 gen.Emit(OpCodes.Ldarg_0)
@@ -243,7 +243,7 @@ let compile (program: int array) (loop: bool) =
 
         | bad -> failwithf "Bad op code %d" program[i]
 
-    if loop then
+    if loopCount > 0 then
         // Compare I to the length of the array.
         gen.Emit(OpCodes.Ldarg_0)
         gen.Emit(OpCodes.Ldlen)
@@ -308,17 +308,17 @@ let compile (program: int array) (loop: bool) =
 
 let part2 path =
     let regs, program = parseInput path
-    let compiled = compile program true
+    let compiled = compile program 1_000_000_000
     let args = [| box program; regs|]
     let mutable found = false
     while not found do
         let outLen = compiled.Invoke(null, args)
         let outLen = int (unbox outLen)
         found <- outLen = program.Length
-        printfn "%d" regs.A
+        printfn "part2: %d" regs.A
 
 let runCompiled (regs: Registers, program: int array) =
-    let compiled = compile program false
+    let compiled = compile program 0
     let outBuffer = Array.create 100 0
     let args  = [| box outBuffer; regs |]
     let outLen = compiled.Invoke(null, args)
