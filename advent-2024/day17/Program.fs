@@ -85,7 +85,7 @@ let compile (program: int array) =
     let moduleBuilder = assemblyBuilder.DefineDynamicModule("Compiler")
     let args = [| typeof<int array>; typeof<Registers>; |]
     let method = DynamicMethod("run", typeof<int>, args, moduleBuilder)
-    let gen = method.GetILGenerator(program.Length * 32)
+    let gen = method.GetILGenerator(program.Length * 32 + 100)
 
     let fieldFlags = BindingFlags.Public ||| BindingFlags.Instance;
     let fieldA = typeof<Registers>.GetField("A@", fieldFlags)
@@ -135,8 +135,9 @@ let compile (program: int array) =
 
     let emitADivCombo operand =
         emitLoadA()
-        gen.Emit(OpCodes.Ldc_I8, 1)
+        gen.Emit(OpCodes.Ldc_I8, 1L)
         emitCombo operand
+        gen.Emit(OpCodes.Conv_I4)
         gen.Emit(OpCodes.Shl)
         gen.Emit(OpCodes.Div)
 
@@ -242,19 +243,22 @@ let tests() =
     let regs, out = runCompiled ({ zeros with C = 9}, [|2; 6|])
     assert(regs.B = 1)
 
-    let regs, out = runMachine ({ zeros with A = 2024}, [|0;1;5;4;3;0|])
-    assert(out = [|4;2;5;6;7;7;7;7;3;1;0|])
-    assert(regs.A = 0)
-
-    let regs, out = runMachine ({ zeros with B = 29}, [|1; 7|])
+    let regs, out = runCompiled ({ zeros with B = 29}, [|1; 7|])
     assert(regs.B = 26)
 
-    let regs, out = runMachine ({ zeros with B = 2024; C = 43690}, [|4; 0|])
+    let regs, out = runCompiled ({ zeros with B = 2024; C = 43690}, [|4; 0|])
     assert(regs.B = 44354)
 
 let failingTests() =
-    let regs, out = runCompiled ({ zeros with A = 10}, [|5; 0; 5; 1; 5; 4|])
+    let regs, out = runCompiled ({ zeros with A = 2024}, [|0;1;5;4;3;0|])
+    assert(out = [|4;2;5;6;7;7;7;7;3;1;0|])
+    assert(regs.A = 0)
+
+    let regs, out = runCompiled ({ zeros with A = 10}, [|5; 0; 5; 1; 5; 4 |])
     assert(out = [|0; 1; 2|])
+
+
+
 
 
 [<EntryPoint>]
