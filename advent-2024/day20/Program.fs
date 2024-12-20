@@ -8,16 +8,36 @@ let enumArray2D arr =
                 yield i, j, arr[i, j]
     }
 
-let findCheatsStartingFrom (paths: Option<int>[,]) (startRow, startCol, cheatStart) =
+let dirs = [ 1, 0; -1, 0; 0, 1; 0, -1]
+
+let findCheatsStartingFrom (maxCheatCount: int) (paths: Option<int>[,])
+    (startRow, startCol, cheatStart) =
     let inBounds (row, col) = (
         row >= 0 && row < Array2D.length1 paths
         && col >= 0 && col < Array2D.length2 paths)
-    [ 2, 0; -2, 0; 0, 2; 0, -2]
-    |> List.map (fun (dRow, dCol) -> startRow + dRow, startCol + dCol)
-    |> List.filter inBounds
-    |> List.choose (fun (row, col) -> paths[row, col])
-    |> List.map (fun cheatEnd -> cheatEnd - cheatStart - 2)
-    |> List.filter(fun cheatSavings -> cheatSavings > 0)
+    let visited = HashSet([startRow, startCol])
+    let q = Queue([startRow, startCol, 0])
+    let mutable cheats = []
+    while q.Count > 0 do
+        let cheatCol, cheatRow, cheatCount = q.Dequeue()
+        dirs
+        |> List.map (fun (dRow, dCol) -> cheatRow + dRow, cheatCol + dCol)
+        |> List.filter inBounds
+        |> List.filter (not << visited.Contains)
+        |> List.iter (fun (row, col) ->
+            visited.Add(row, col) |> ignore
+            match paths[row,col] with
+            | Some n ->
+                // It's another square on the path.  Is it the terminus of
+                // a shortcut?
+                let savings = n - cheatStart - cheatCount
+                if savings > 0 then
+                    cheats <- savings :: cheats
+            | None ->
+                // It's a barrier.  Continue cheating.
+                if 1 + cheatCount < maxCheatCount then
+                    q.Enqueue(row, col, 1 + cheatCount))
+    cheats
 
 let race (maze: string array) =
     // Find the start position.
@@ -35,7 +55,6 @@ let race (maze: string array) =
     paths[startRow, startCol] <- Some(0)
 
     // Explore, leaving shortest path to each square in paths.
-    let dirs = [ 1, 0; -1, 0; 0, 1; 0, -1]
     let q = Queue([startRow, startCol, 1])
     while q.Count > 0 do
         let proRow, proCol, stepCount = q.Dequeue()
@@ -55,7 +74,7 @@ let race (maze: string array) =
         | None -> None
         | Some start -> Some (row, col, start))
     |> Seq.toList
-    |> List.map (findCheatsStartingFrom paths)
+    |> List.map (findCheatsStartingFrom 2 paths)
     |> List.collect id
     |> List.groupBy id
     |> List.map (fun (n, nlist) -> (n, List.length nlist))
