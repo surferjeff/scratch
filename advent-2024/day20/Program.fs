@@ -23,20 +23,19 @@ let findCheatsStartingFrom (maxCheatCount: int) (paths: Option<int>[,])
         dirs
         |> List.map (fun (dRow, dCol) -> cheatRow + dRow, cheatCol + dCol)
         |> List.filter inBounds
-        |> List.filter (not << visited.Contains)
         |> List.iter (fun (row, col) ->
-            visited.Add(row, col) |> ignore
-            match paths[row,col] with
-            | Some n ->
-                // It's another square on the path.  Is it the terminus of
-                // a shortcut?
-                let savings = n - cheatStart - cheatCount
-                if savings > 0 then
-                    cheats <- savings :: cheats
-            | None ->
-                // It's a barrier.  Continue cheating.
-                if 1 + cheatCount < maxCheatCount then
-                    q.Enqueue(row, col, 1 + cheatCount))
+            if visited.Add(row, col) then
+                match paths[row,col] with
+                | Some n ->
+                    // It's another square on the path.  Is it the terminus of
+                    // a shortcut?
+                    let savings = n - cheatStart - cheatCount
+                    if savings > 1 then
+                        cheats <- savings :: cheats
+                | None ->
+                    // It's a barrier.  Continue cheating.
+                    if 1 + cheatCount < maxCheatCount then
+                        q.Enqueue(row, col, 1 + cheatCount))
     cheats
 
 let race (maze: string array) =
