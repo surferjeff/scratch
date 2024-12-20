@@ -25,13 +25,13 @@ let race (maze: string array) =
 
     // Explore, leaving shortest path to each square in paths.
     let dirs = [ 1, 0; -1, 0; 0, 1; 0, -1]
-    let q = Queue([startRow, startCol, 0])
+    let q = Queue([startRow, startCol, 1])
     while q.Count > 0 do
         let proRow, proCol, stepCount = q.Dequeue()
         for dRow, dCol in dirs do
             let stepRow, stepCol = proRow + dRow, proCol + dCol
             match maze[stepRow][stepCol], paths[stepRow, stepCol] with
-            | '.', None ->
+            | ('.' | 'E'), None ->
                 paths[stepRow, stepCol] <- Some stepCount
                 q.Enqueue(stepRow, stepCol, stepCount + 1)
             | _ -> ()
@@ -39,24 +39,26 @@ let race (maze: string array) =
     // Find cheats.
     let inBounds (row, col) = row >= 0 && row < rows && col >= 0 && col < cols
     let cheatDirs = dirs |> List.map (fun (i, j) -> i * 2, j * 2)
-    paths
-    |> enumArray2D
-    |> Seq.choose (fun (row, col, square) ->
-        match square with
-        | None -> None
-        | Some start -> Some (row, col, start))
-    |> Seq.map (fun (startRow, startCol, cheatStart) ->
+    let starts = 
+        paths
+        |> enumArray2D
+        |> Seq.choose (fun (row, col, square) ->
+            match square with
+            | None -> None
+            | Some start -> Some (row, col, start))
+        |> Seq.toList
+    starts
+    |> List.map (fun (startRow, startCol, cheatStart) ->
         cheatDirs
-        |> Seq.map (fun (dRow, dCol) -> startRow + dRow, startCol + dCol)
-        |> Seq.filter inBounds
-        |> Seq.choose (fun (row, col) -> paths[row, col])
-        |> Seq.map (fun cheatEnd -> cheatEnd - cheatStart)
-        |> Seq.filter (fun cheatSavings -> cheatSavings > 1))
-    |> Seq.collect id
-    |> Seq.groupBy id
-    |> Seq.map (fun (n, nlist) -> (n, Seq.length nlist))
-    |> Seq.sort
-    |> Seq.toList
+        |> List.map (fun (dRow, dCol) -> startRow + dRow, startCol + dCol)
+        |> List.filter inBounds
+        |> List.choose (fun (row, col) -> paths[row, col])
+        |> List.map (fun cheatEnd -> cheatEnd - cheatStart)
+        |> List.filter (fun cheatSavings -> cheatSavings > 1))
+    |> List.collect id
+    |> List.groupBy id
+    |> List.map (fun (n, nlist) -> (n, List.length nlist))
+    |> List.sort
 
 
 [<EntryPoint>]
