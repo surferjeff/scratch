@@ -41,20 +41,21 @@ let race (maze: string array) =
     let cheatDirs = dirs |> List.map (fun (i, j) -> i * 2, j * 2)
     paths
     |> enumArray2D
-    |> Seq.map (fun row col square ->
+    |> Seq.choose (fun (row, col, square) ->
         match square with
         | None -> None
         | Some start -> Some (row, col, start))
-    |> Seq.choose id 
     |> Seq.map (fun (startRow, startCol, cheatStart) ->
         cheatDirs
         |> Seq.map (fun (dRow, dCol) -> startRow + dRow, startCol + dCol)
         |> Seq.filter inBounds
-        |> Seq.map (fun (row, col) -> path[row, col])
-        |> Seq.choose
+        |> Seq.choose (fun (row, col) -> paths[row, col])
         |> Seq.map (fun cheatEnd -> cheatEnd - cheatStart)
-        |> Seq.filter (fun cheatSavings -> cheatSavings > 2))
-    |> Seq.collect
+        |> Seq.filter (fun cheatSavings -> cheatSavings > 1))
+    |> Seq.collect id
+    |> Seq.groupBy id
+    |> Seq.map (fun (n, nlist) -> (n, Seq.length nlist))
+    |> Seq.sort
     |> Seq.toList
 
 
