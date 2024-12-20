@@ -16,7 +16,7 @@ let findCheatsStartingFrom (maxCheatCount: int) (paths: Option<int>[,])
         row >= 0 && row < Array2D.length1 paths
         && col >= 0 && col < Array2D.length2 paths)
     let visited = HashSet([startRow, startCol])
-    let q = Queue([startRow, startCol, 0])
+    let q = Queue([startRow, startCol, 1])
     let mutable cheats = []
     while q.Count > 0 do
         let cheatCol, cheatRow, cheatCount = q.Dequeue()
@@ -31,10 +31,11 @@ let findCheatsStartingFrom (maxCheatCount: int) (paths: Option<int>[,])
                     // a shortcut?
                     let savings = n - cheatStart - cheatCount
                     if savings > 1 then
+                        // System.Diagnostics.Debugger.Break()
                         cheats <- savings :: cheats
                 | None ->
                     // It's a barrier.  Continue cheating.
-                    if 1 + cheatCount < maxCheatCount then
+                    if cheatCount < maxCheatCount then
                         q.Enqueue(row, col, 1 + cheatCount))
     cheats
 
