@@ -64,9 +64,8 @@ let race (maze: string array) =
             |> List.map (fun (dRow, dCol) -> startRow + dRow, startCol + dCol)
             |> List.filter inBounds
             |> List.choose (fun (row, col) -> paths[row, col])
-            |> List.map (fun cheatEnd -> cheatEnd - cheatStart - 1)
-            |> List.filter (
-                fun cheatSavings -> cheatSavings > 1)
+            |> List.map (fun cheatEnd -> cheatEnd - cheatStart - 2)
+            |> List.filter(fun cheatSavings -> cheatSavings > 0)
         cheats)
     |> List.collect id
     |> List.groupBy id
