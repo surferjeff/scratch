@@ -46,34 +46,37 @@ let race (maze: string array) =
 
     renderPath paths
 
-    // // Find cheats.
-    // let inBounds (row, col) = row >= 0 && row < rows && col >= 0 && col < cols
-    // let cheatDirs = dirs |> List.map (fun (i, j) -> i * 2, j * 2)
-    // let starts = 
-    //     paths
-    //     |> enumArray2D
-    //     |> Seq.choose (fun (row, col, square) ->
-    //         match square with
-    //         | None -> None
-    //         | Some start -> Some (row, col, start))
-    //     |> Seq.toList
-    // starts
-    // |> List.map (fun (startRow, startCol, cheatStart) ->
-    //     cheatDirs
-    //     |> List.map (fun (dRow, dCol) -> startRow + dRow, startCol + dCol)
-    //     |> List.filter inBounds
-    //     |> List.choose (fun (row, col) -> paths[row, col])
-    //     |> List.map (fun cheatEnd -> cheatEnd - cheatStart)
-    //     |> List.filter (fun cheatSavings -> cheatSavings > 1))
-    // |> List.collect id
-    // |> List.groupBy id
-    // |> List.map (fun (n, nlist) -> (n, List.length nlist))
-    // |> List.sort
+    // Find cheats.
+    let inBounds (row, col) = row >= 0 && row < rows && col >= 0 && col < cols
+    let cheatDirs = dirs |> List.map (fun (i, j) -> i * 2, j * 2)
+    let starts = 
+        paths
+        |> enumArray2D
+        |> Seq.choose (fun (row, col, square) ->
+            match square with
+            | None -> None
+            | Some start -> Some (row, col, start))
+        |> Seq.toList
+    starts
+    |> List.map (fun (startRow, startCol, cheatStart) ->
+        let cheats = 
+            cheatDirs
+            |> List.map (fun (dRow, dCol) -> startRow + dRow, startCol + dCol)
+            |> List.filter inBounds
+            |> List.choose (fun (row, col) -> paths[row, col])
+            |> List.map (fun cheatEnd -> cheatEnd - cheatStart - 1)
+            |> List.filter (
+                fun cheatSavings -> cheatSavings > 1)
+        cheats)
+    |> List.collect id
+    |> List.groupBy id
+    |> List.map (fun (n, nlist) -> (n, List.length nlist))
+    |> List.sort
 
 
 [<EntryPoint>]
 let main argv =
     File.ReadAllLines argv[0]
     |> race
-    |> printf "%A"
+    |> printfn "%A"
     0
