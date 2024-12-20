@@ -8,6 +8,17 @@ let enumArray2D arr =
                 yield i, j, arr[i, j]
     }
 
+let findCheatsStartingFrom (paths: Option<int>[,]) (startRow, startCol, cheatStart) =
+    let inBounds (row, col) = (
+        row >= 0 && row < Array2D.length1 paths
+        && col >= 0 && col < Array2D.length2 paths)
+    [ 2, 0; -2, 0; 0, 2; 0, -2]
+    |> List.map (fun (dRow, dCol) -> startRow + dRow, startCol + dCol)
+    |> List.filter inBounds
+    |> List.choose (fun (row, col) -> paths[row, col])
+    |> List.map (fun cheatEnd -> cheatEnd - cheatStart - 2)
+    |> List.filter(fun cheatSavings -> cheatSavings > 0)
+
 let race (maze: string array) =
     // Find the start position.
     let mutable startRow, startCol = -1, -1
@@ -37,8 +48,6 @@ let race (maze: string array) =
             | _ -> ()
 
     // Find cheats.
-    let inBounds (row, col) = row >= 0 && row < rows && col >= 0 && col < cols
-    let cheatDirs = dirs |> List.map (fun (i, j) -> i * 2, j * 2)
     paths
     |> enumArray2D
     |> Seq.choose (fun (row, col, square) ->
@@ -46,13 +55,7 @@ let race (maze: string array) =
         | None -> None
         | Some start -> Some (row, col, start))
     |> Seq.toList
-    |> List.map (fun (startRow, startCol, cheatStart) ->
-        cheatDirs
-        |> List.map (fun (dRow, dCol) -> startRow + dRow, startCol + dCol)
-        |> List.filter inBounds
-        |> List.choose (fun (row, col) -> paths[row, col])
-        |> List.map (fun cheatEnd -> cheatEnd - cheatStart - 2)
-        |> List.filter(fun cheatSavings -> cheatSavings > 0))
+    |> List.map (findCheatsStartingFrom paths)
     |> List.collect id
     |> List.groupBy id
     |> List.map (fun (n, nlist) -> (n, List.length nlist))
