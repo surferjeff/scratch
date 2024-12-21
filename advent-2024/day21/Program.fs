@@ -53,11 +53,16 @@ let enumMovesInPattern (movesMap: Map<char*char, string>) (pattern: string) =
     moves |> List.map (fun a2b -> (Map.find a2b movesMap) + "A")
 
 let tripleCode (code: string) =
-    enumMovesInPattern numberMoves code
+    code
+    |> pipePrint "%A"
+    |> enumMovesInPattern numberMoves
+    |> pipePrint "%A"
     |> String.concat ""
     |> enumMovesInPattern arrowMoves
+    |> pipePrint "%A"
     |> String.concat ""
     |> enumMovesInPattern arrowMoves
+    |> pipePrint "%A"
     |> String.concat ""
 
 let part1 (codes: string list) =
@@ -72,10 +77,10 @@ let part1 (codes: string list) =
 [<EntryPoint>]
 let main argv =
     part1 [
-        "029A"
-        "980A"
-        "179A"
-        "456A"
+        // "029A"
+        // "980A"
+        // "179A"
+        // "456A"
         "379A"
     ]
     0
