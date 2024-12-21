@@ -27,15 +27,12 @@ let countMoves map keyStart keyEnd =
     let rowEnd, colEnd = Map.find keyEnd map
     abs (rowStart - rowEnd) + abs (colStart - colEnd)
 
-let countMovesInPattern (map: Map<char, int*int>) (pattern: char seq)=
-    pattern
-    |> Seq.append (Seq.singleton 'A')
-    |> Seq.rev
-    |> Seq.fold (fun (pairList, prev) keyPress ->
-        (keyPress, prev) :: pairList, keyPress) ([], '*')
-    |> fst
-    |> Seq.filter (fun (keyStart, keyEnd) -> keyEnd <> '*')
-    |> printfn "%A"
+let countMovesInPattern (map: Map<char, int*int>) (pattern: char array) =
+    let mutable moves = []
+    for i in pattern.Length-2..-1..0 do
+        moves <- (pattern[i], pattern[i+1]) :: moves
+    moves <- ('A', pattern[0]) :: moves
+    printfn "%A" moves
 
-countMovesInPattern numberMap "029A"
+countMovesInPattern numberMap ("029A".ToCharArray())
 
