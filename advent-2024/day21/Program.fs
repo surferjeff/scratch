@@ -21,22 +21,21 @@ let mapFromPad (pad: string list) =
                 grid <- Map.add c (row, col) grid
     grid
 
+let enumMoves less more iend istart =
+    match iend - istart with
+    | 0 -> ""
+    | n when n < 0 -> String.replicate -n less
+    | n -> String.replicate n more
+let enumVert = enumMoves "^" "v"
+let enumHoriz = enumMoves "<" ">"
+
 let movesFromMap (map: Map<char, int*int>) =
     Seq.allPairs (Map.keys map) (Map.keys map)
     |> Seq.map (fun (keyStart, keyEnd) -> 
         let rowStart, colStart = Map.find keyStart map
         let rowEnd, colEnd = Map.find keyEnd map
-        let vertMove =
-            match rowEnd - rowStart with
-            | 0 -> ""
-            | n when n < 0 -> String.replicate -n "^"
-            | n -> String.replicate n "v"
-        let horizMove =
-            match colEnd - colStart with
-            | 0 -> ""
-            | n when n < 0 -> String.replicate -n "<"
-            | n -> String.replicate n ">"
-        ((keyStart, keyEnd), vertMove + horizMove))
+        let moves = (enumVert rowEnd rowStart) + (enumHoriz colEnd colStart)
+        ((keyStart, keyEnd), moves))
     |> Map
 
 let movesFromPad = mapFromPad >> movesFromMap
