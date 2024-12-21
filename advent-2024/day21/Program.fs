@@ -26,15 +26,14 @@ let enumMoves less more iend istart =
     | 0 -> ""
     | n when n < 0 -> String.replicate -n less
     | n -> String.replicate n more
-let enumVert = enumMoves "^" "v"
-let enumHoriz = enumMoves "<" ">"
 
 let movesFromMap (map: Map<char, int*int>) =
     Seq.allPairs (Map.keys map) (Map.keys map)
     |> Seq.map (fun (keyStart, keyEnd) -> 
         let rowStart, colStart = Map.find keyStart map
         let rowEnd, colEnd = Map.find keyEnd map
-        let moves = (enumVert rowEnd rowStart) + (enumHoriz colEnd colStart)
+        let moves = (enumMoves "^" "v" rowEnd rowStart) + (
+            enumMoves "<" ">" colEnd colStart)
         ((keyStart, keyEnd), moves))
     |> Map
 
