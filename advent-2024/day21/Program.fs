@@ -47,15 +47,21 @@ let pipePrint format thing =
     printfn format thing
     thing
 
-let enumMovesInPattern (movesMap: Map<char*char, string>) (pattern: char array) =
+let enumMovesInPattern (movesMap: Map<char*char, string>) (pattern: string) =
     let mutable moves = []
     for i in pattern.Length-2..-1..0 do
         moves <- (pattern[i], pattern[i+1]) :: moves
     moves <- ('A', pattern[0]) :: moves
     moves
-    |> pipePrint "%A"
     |> List.map (fun a2b -> (Map.find a2b movesMap) + "A")
 
-enumMovesInPattern numberMoves ("029A".ToCharArray())
-|> printfn "%A"
+enumMovesInPattern numberMoves ("029A")
+|> String.concat ""
+|> pipePrint "%s"
+|> enumMovesInPattern arrowMoves
+|> String.concat ""
+|> pipePrint "%s" 
+|> enumMovesInPattern arrowMoves
+|> String.concat ""
+|> printfn "%s"
 
