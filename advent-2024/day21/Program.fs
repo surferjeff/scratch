@@ -21,11 +21,11 @@ let mapFromPad (pad: string list) =
                 grid <- Map.add c (row, col) grid
     grid
 
-let enumMoves less more iend istart =
+let enumMoves lessChar moreChar iend istart =
     match iend - istart with
     | 0 -> ""
-    | n when n < 0 -> String.replicate -n less
-    | n -> String.replicate n more
+    | n when n < 0 -> String.replicate -n lessChar
+    | n -> String.replicate n moreChar
 
 let movesFromMap (map: Map<char, int*int>) =
     Seq.allPairs (Map.keys map) (Map.keys map)
@@ -38,10 +38,8 @@ let movesFromMap (map: Map<char, int*int>) =
     |> Map
 
 let movesFromPad = mapFromPad >> movesFromMap
-
 let numberMoves = movesFromPad numberPad
 let arrowMoves = movesFromPad arrowPad
-
 
 let pipePrint format thing =
     printfn format thing
@@ -52,16 +50,32 @@ let enumMovesInPattern (movesMap: Map<char*char, string>) (pattern: string) =
     for i in pattern.Length-2..-1..0 do
         moves <- (pattern[i], pattern[i+1]) :: moves
     moves <- ('A', pattern[0]) :: moves
-    moves
-    |> List.map (fun a2b -> (Map.find a2b movesMap) + "A")
+    moves |> List.map (fun a2b -> (Map.find a2b movesMap) + "A")
 
-enumMovesInPattern numberMoves ("029A")
-|> String.concat ""
-|> pipePrint "%s"
-|> enumMovesInPattern arrowMoves
-|> String.concat ""
-|> pipePrint "%s" 
-|> enumMovesInPattern arrowMoves
-|> String.concat ""
-|> printfn "%s"
+let tripleCode (code: string) =
+    enumMovesInPattern numberMoves code
+    |> String.concat ""
+    |> enumMovesInPattern arrowMoves
+    |> String.concat ""
+    |> enumMovesInPattern arrowMoves
+    |> String.concat ""
 
+let part1 (codes: string list) =
+    codes
+    |> List.map (fun code -> code, (tripleCode code))
+    |> List.map (fun (code, tripleCode) -> (tripleCode.Length, int code[0..code.Length-2]))
+    |> pipePrint "%A"
+    |> List.map (fun (n, m) -> n * m)
+    |> List.sum
+    |> printfn "part1: %d"
+
+[<EntryPoint>]
+let main argv =
+    part1 [
+        "029A"
+        "980A"
+        "179A"
+        "456A"
+        "379A"
+    ]
+    0
