@@ -28,25 +28,18 @@ let enumMoves lessChar moreChar iend istart =
 
 // Moves that pass through the empty space aren't legal.
 let moveIsLegal spacePos rowStart colStart moves =
-    let mutable row, col = rowStart, colStart
-    let mutable isLegal = true
-    let mutable i = 0
-    while isLegal && i < (String.length moves) - 1 do
-        let newPos = 
-            match moves[i] with
-            | 'v' -> row + 1, col
-            | '^' -> row - 1, col
-            | '>' -> row, col + 1
-            | '<' -> row, col + 1
-            | 'A' -> row, col
-            | c -> failwithf "Bad move character %c" c
-        if (row, col) = spacePos then
-            isLegal <- false
-        else      
-            row <- fst newPos
-            col <- snd newPos
-    isLegal
-
+    moves
+    |> Seq.scan (fun (row, col) move -> 
+        match move with
+        | 'v' -> row + 1, col
+        | '^' -> row - 1, col
+        | '>' -> row, col + 1
+        | '<' -> row, col + 1
+        | 'A' -> row, col
+        | c -> failwithf "Bad move character %c" c
+    ) (rowStart, colStart)
+    |> (Seq.exists ((=) spacePos) >> not)
+    
 // Maps the starting position and first key press to string of keypresses.
 type MovesMap = Dictionary<char*char*char option, string>
 
