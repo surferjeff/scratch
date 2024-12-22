@@ -47,9 +47,11 @@ let moveIsLegal spacePos rowStart colStart moves =
             col <- snd newPos
     isLegal
 
+// Maps the starting position and first key press to string of keypresses.
+type MovesMap = Dictionary<char*char*char option, string>
+
 let movesFromMap (map: Map<char, int*int>) =
-    // Maps the starting position and first key press to string of keypresses.
-    let moveMap = Dictionary<char*char*char option, string>()
+    let moveMap = MovesMap()
     let moveIsLegal = moveIsLegal (Map.find ' ' map)
     for (keyStart, keyEnd) in Seq.allPairs (Map.keys map) (Map.keys map) do
         let rowStart, colStart = Map.find keyStart map
@@ -74,7 +76,7 @@ let pipePrint format thing =
     printfn format thing
     thing
 
-let enumMovesInPattern (movesMap: Map<char*char, string>) (pattern: string) =
+let enumMovesInPattern (movesMap: MovesMap) (pattern: string) =
     let mutable moves = []
     for i in pattern.Length-2..-1..0 do
         moves <- (pattern[i], pattern[i+1]) :: moves
