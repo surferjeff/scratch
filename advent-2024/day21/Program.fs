@@ -1,4 +1,5 @@
-﻿
+﻿open System.Collections.Generic
+
 let numberPad = [
     "789"
     "456"
@@ -16,9 +17,7 @@ let mapFromPad (pad: string list) =
     for row in 0..pad.Length-1 do
         let line = pad[row]
         for col in 0..line.Length - 1 do
-            let c = line[col]
-            if c <> ' ' then
-                grid <- Map.add c (row, col) grid
+            grid <- Map.add line[col] (row, col) grid
     grid
 
 let enumMoves lessChar moreChar iend istart =
@@ -27,15 +26,40 @@ let enumMoves lessChar moreChar iend istart =
     | n when n < 0 -> String.replicate -n lessChar
     | n -> String.replicate n moreChar
 
+// Moves that pass through the empty space aren't legal.
+let moveIsLegal (map: Map<char, int*int>) rowStart colStart rowEnd colEnd moves =
+    let mutable row, col = rowStart, colStart
+    for move in moves do
+        let newPos = 
+            match move with
+            | 'v' -> row + 1, col
+            | '^' -> row - 1, col
+            | '>' -> row, col + 1
+            | '<' -> row, col + 1
+            | 'A' -> row, col
+            | c -> failwithf "Bad move character %c" c
+        row <- fst newPos
+        col <- snd newPos
+        if Map.find (row, col) = ' ' then
+            return false
+    return true
+
+
 let movesFromMap (map: Map<char, int*int>) =
+    // Maps the starting position and first key press to string of keypresses.
+    let moveMap = Dictionary<char*char*char option, string>()
     Seq.allPairs (Map.keys map) (Map.keys map)
-    |> Seq.map (fun (keyStart, keyEnd) -> 
+    |> Seq.iter (fun (keyStart, keyEnd) -> 
         let rowStart, colStart = Map.find keyStart map
         let rowEnd, colEnd = Map.find keyEnd map
-        let moves = (enumMoves "^" "v" rowEnd rowStart) + (
-            enumMoves "<" ">" colEnd colStart)
-        ((keyStart, keyEnd), moves))
-    |> Map
+        let vertMoves = enumMoves "^" "v" rowEnd rowStart
+        let horizMoves = enumMoves "<" ">" colEnd colStart
+        if vertMoves.Length > 0 || horizMoves.Length > 0 then
+            moveMap[(keyStart, keyEnd, Some vertMoves[0])] <- vertMoves + horizMoves
+            moveMap[(keyStart, keyEnd, Some horizMoves[0])] <- horizMoves + vertMoves
+            moveMap[(keyStart, keyEnd, None)] <- vertMoves + horizMoves
+    )
+
 
 let movesFromPad = mapFromPad >> movesFromMap
 let numberMoves = movesFromPad numberPad
