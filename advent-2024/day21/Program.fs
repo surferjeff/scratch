@@ -27,38 +27,43 @@ let enumMoves lessChar moreChar iend istart =
     | n -> String.replicate n moreChar
 
 // Moves that pass through the empty space aren't legal.
-let moveIsLegal (map: Map<char, int*int>) rowStart colStart rowEnd colEnd moves =
+let moveIsLegal spacePos rowStart colStart moves =
     let mutable row, col = rowStart, colStart
-    for move in moves do
+    let mutable isLegal = true
+    let mutable i = 0
+    while isLegal && i < (String.length moves) - 1 do
         let newPos = 
-            match move with
+            match moves[i] with
             | 'v' -> row + 1, col
             | '^' -> row - 1, col
             | '>' -> row, col + 1
             | '<' -> row, col + 1
             | 'A' -> row, col
             | c -> failwithf "Bad move character %c" c
-        row <- fst newPos
-        col <- snd newPos
-        if Map.find (row, col) = ' ' then
-            return false
-    return true
-
+        if (row, col) = spacePos then
+            isLegal <- false
+        else      
+            row <- fst newPos
+            col <- snd newPos
+    isLegal
 
 let movesFromMap (map: Map<char, int*int>) =
     // Maps the starting position and first key press to string of keypresses.
     let moveMap = Dictionary<char*char*char option, string>()
-    Seq.allPairs (Map.keys map) (Map.keys map)
-    |> Seq.iter (fun (keyStart, keyEnd) -> 
+    let moveIsLegal = moveIsLegal (Map.find ' ' map)
+    for (keyStart, keyEnd) in Seq.allPairs (Map.keys map) (Map.keys map) do
         let rowStart, colStart = Map.find keyStart map
         let rowEnd, colEnd = Map.find keyEnd map
         let vertMoves = enumMoves "^" "v" rowEnd rowStart
         let horizMoves = enumMoves "<" ">" colEnd colStart
         if vertMoves.Length > 0 || horizMoves.Length > 0 then
-            moveMap[(keyStart, keyEnd, Some vertMoves[0])] <- vertMoves + horizMoves
-            moveMap[(keyStart, keyEnd, Some horizMoves[0])] <- horizMoves + vertMoves
-            moveMap[(keyStart, keyEnd, None)] <- vertMoves + horizMoves
-    )
+            let legalMoves = 
+                [vertMoves + horizMoves; horizMoves + vertMoves]
+                |> List.filter (moveIsLegal rowStart colStart)
+            for moves in legalMoves do
+                moveMap[(keyStart, keyEnd, Some moves[0])] <- moves
+            moveMap[(keyStart, keyEnd, None)] <- legalMoves[0]
+    moveMap
 
 
 let movesFromPad = mapFromPad >> movesFromMap
