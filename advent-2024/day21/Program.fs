@@ -57,14 +57,11 @@ let movesFromMap (map: Map<char, int*int>) =
         let rowEnd, colEnd = Map.find keyEnd map
         let vertMoves = enumMoves "^" "v" rowEnd rowStart
         let horizMoves = enumMoves "<" ">" colEnd colStart
-        if vertMoves.Length > 0 || horizMoves.Length > 0 then
-            let legalMoves = 
-                [vertMoves + horizMoves; horizMoves + vertMoves]
-                |> List.distinct
-                |> List.filter (moveIsLegal rowStart colStart)
-            Map.add (keyStart, keyEnd) legalMoves movesMap
-        else
-            movesMap) Map.empty
+        let legalMoves = 
+            [vertMoves + horizMoves; horizMoves + vertMoves]
+            |> List.distinct
+            |> List.filter (moveIsLegal rowStart colStart)
+        Map.add (keyStart, keyEnd) legalMoves movesMap) Map.empty
 
 let movesFromPad = mapFromPad >> movesFromMap
 let numberMoves = movesFromPad numberPad
