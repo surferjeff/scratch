@@ -49,10 +49,10 @@ let moveIsLegal spacePos rowStart colStart moves =
 type MovesMap = Map<char*char, string list>
 
 let movesFromMap (map: Map<char, int*int>) =
-    let mutable movesMap: MovesMap = Map.empty
     let moveIsLegal = moveIsLegal (Map.find ' ' map)
     let legalKeys = map.Keys |> Seq.filter (fun c -> c <> ' ') |> Seq.toList
-    for (keyStart, keyEnd) in Seq.allPairs legalKeys legalKeys  do
+    Seq.allPairs legalKeys legalKeys
+    |> Seq.fold (fun movesMap (keyStart, keyEnd) ->
         let rowStart, colStart = Map.find keyStart map
         let rowEnd, colEnd = Map.find keyEnd map
         let vertMoves = enumMoves "^" "v" rowEnd rowStart
@@ -62,8 +62,9 @@ let movesFromMap (map: Map<char, int*int>) =
                 [vertMoves + horizMoves; horizMoves + vertMoves]
                 |> List.distinct
                 |> List.filter (moveIsLegal rowStart colStart)
-            movesMap <- Map.add (keyStart, keyEnd) legalMoves movesMap
-    movesMap
+            Map.add (keyStart, keyEnd) legalMoves movesMap
+        else
+            movesMap) Map.empty
 
 let movesFromPad = mapFromPad >> movesFromMap
 let numberMoves = movesFromPad numberPad
