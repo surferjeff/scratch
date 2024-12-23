@@ -89,23 +89,17 @@ let enumMovesInPattern (movesMap: MovesMap) (pattern: char seq) =
     |> Seq.map (fun keyPresses -> Map.find keyPresses movesMap)
     |> Seq.filter (not << List.isEmpty)
 
-let a29() =
-    "029A"
-    |> enumMovesInPattern numberMoves
-    |> Seq.toList
-    |> pipePrint "%A"
-    |> explodeMoves
-    |> printfn "%A"
+let printLengthAndString s = printfn "%02d %A" (String.length s) s; s
 
 let solve (movesMap: MovesMap) (patterns: string list) =
     patterns
     |> List.map (enumMovesInPattern movesMap >> Seq.toList)
     |> List.map explodeMoves
     |> List.collect id
+    |> pipePrint "%A"
     
 let tripleCode (code: string) =
     [code]
-    |> pipePrint "%A"
     |> solve numberMoves
     |> solve arrowMoves
     |> solve arrowMoves
@@ -122,12 +116,11 @@ let part1 (codes: string list) =
 
 [<EntryPoint>]
 let main argv =
-    // a29()
     part1 [
         "029A"
-        "980A"
-        "179A"
-        "456A"
-        "379A"
+        // "980A"
+        // "179A"
+        // "456A"
+        // "379A"
     ]
     0
