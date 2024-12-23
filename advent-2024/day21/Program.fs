@@ -98,15 +98,10 @@ let a29() =
     |> printfn "%A"
 
 let solve (movesMap: MovesMap) (patterns: string list) =
-    let nextPatterns =
-        patterns
-        |> List.map (enumMovesInPattern movesMap >> Seq.toList)
-        |> List.map explodeMoves
-        |> List.collect id
-    let minLength = nextPatterns |> List.minBy String.length |> String.length
-    nextPatterns
-    |> List.filter (fun pattern -> pattern.Length = minLength)
-    |> pipePrint "%A"
+    patterns
+    |> List.map (enumMovesInPattern movesMap >> Seq.toList)
+    |> List.map explodeMoves
+    |> List.collect id
     
 let tripleCode (code: string) =
     [code]
@@ -114,7 +109,7 @@ let tripleCode (code: string) =
     |> solve numberMoves
     |> solve arrowMoves
     |> solve arrowMoves
-    |> List.head
+    |> List.minBy String.length
 
 let part1 (codes: string list) =
     codes
