@@ -96,14 +96,19 @@ let selectMoves (moves: string list seq) =
     |> List.rev
     |> String.concat "A"
 
-let rec explodeMoves (moves: string list list) =
-    match moves with
-    | head :: [] -> [head]
-    | head :: tail ->
-        let tails = explodeMoves tail
-        List.allPairs head tails
-        |> List.map (fun (h, t) -> h :: t)
-    | tail -> failwithf "Unexpected tail %A" tail
+let explodeMoves (moves: string list list) =
+    let rec explode moves = 
+        match moves with
+        | head :: [] -> [head]
+        | head :: tail ->
+            let tails = explode tail
+            List.allPairs head tails
+            |> List.map (fun (h, t) -> h :: t)
+        | tail -> failwithf "Unexpected tail %A" tail
+    explode moves
+    |> List.map (fun moves ->
+        let moves = Seq.append moves [""]
+        String.concat "A" moves)
 
 let enumMovesInPattern (movesMap: MovesMap) (pattern: char seq) =
     pattern
