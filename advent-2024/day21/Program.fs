@@ -46,10 +46,10 @@ let moveIsLegal spacePos rowStart colStart moves =
     |> not
     
 // Maps the starting position and first key press to string of keypresses.
-type MovesMap = Dictionary<char*char*char option, string>
+type MovesMap = Map<char*char, string list>
 
 let movesFromMap (map: Map<char, int*int>) =
-    let moveMap = MovesMap()
+    let mutable movesMap: MovesMap = Map.empty
     let moveIsLegal = moveIsLegal (Map.find ' ' map)
     let legalKeys = map.Keys |> Seq.filter (fun c -> c <> ' ') |> Seq.toList
     for (keyStart, keyEnd) in Seq.allPairs legalKeys legalKeys  do
@@ -62,10 +62,8 @@ let movesFromMap (map: Map<char, int*int>) =
                 [vertMoves + horizMoves; horizMoves + vertMoves]
                 |> List.distinct
                 |> List.filter (moveIsLegal rowStart colStart)
-            for moves in legalMoves do
-                moveMap.Add((keyStart, keyEnd, Some moves[0]), moves)
-            moveMap.Add((keyStart, keyEnd, None), legalMoves[0])
-    moveMap
+            movesMap <- Map.add (keyStart, keyEnd) legalMoves movesMap
+    movesMap
 
 let movesFromPad = mapFromPad >> movesFromMap
 let numberMoves = movesFromPad numberPad
