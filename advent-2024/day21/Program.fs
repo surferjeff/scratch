@@ -96,6 +96,15 @@ let selectMoves (moves: string list seq) =
     |> List.rev
     |> String.concat "A"
 
+let rec explodeMoves (moves: string list list) =
+    match moves with
+    | head :: [] -> [head]
+    | head :: tail ->
+        let tails = explodeMoves tail
+        List.allPairs head tails
+        |> List.map (fun (h, t) -> h :: t)
+    | tail -> failwithf "Unexpected tail %A" tail
+
 let enumMovesInPattern (movesMap: MovesMap) (pattern: char seq) =
     pattern
     |> Seq.append "A"
@@ -106,8 +115,9 @@ let enumMovesInPattern (movesMap: MovesMap) (pattern: char seq) =
 let a29() =
     "029A"
     |> enumMovesInPattern numberMoves
+    |> Seq.toList
     |> pipePrint "%A"
-    |> selectMoves
+    |> explodeMoves
     |> printfn "%A"
 
 let solve movesMap = enumMovesInPattern movesMap >> selectMoves >> pipePrint "%A"
@@ -130,11 +140,12 @@ let part1 (codes: string list) =
 
 [<EntryPoint>]
 let main argv =
-    part1 [
-        "029A"
-        "980A"
-        "179A"
-        "456A"
-        "379A"
-    ]
+    a29()
+    // part1 [
+    //     "029A"
+    //     "980A"
+    //     "179A"
+    //     "456A"
+    //     "379A"
+    // ]
     0
