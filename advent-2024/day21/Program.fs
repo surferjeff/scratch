@@ -67,7 +67,20 @@ let movesFromPad = mapFromPad >> movesFromMap
 let numberMoves = movesFromPad numberPad
 let arrowMoves = movesFromPad arrowPad
 
-numberMoves |> Seq.toList |> printfn "%A" 
+[<Struct>]
+type Segment =
+| Defined of string
+| Undefined of string * string
+
+let enumMovesInPattern (movesMap: MovesMap) (pattern: char seq) =
+    pattern
+    |> Seq.append "A"
+    |> Seq.pairwise
+    |> Seq.map (fun keyPresses -> Map.find keyPresses movesMap)
+
+"379A"
+|> enumMovesInPattern numberMoves
+|> printf "%A"
 
 // let enumMovesInPattern (movesMap: MovesMap) (pattern: string) =
 //     let mutable moves = []
