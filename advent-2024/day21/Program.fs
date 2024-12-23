@@ -38,7 +38,8 @@ let moveIsLegal spacePos rowStart colStart moves =
         | 'A' -> row, col
         | c -> failwithf "Bad move character %c" c
     ) (rowStart, colStart)
-    |> (Seq.exists ((=) spacePos) >> not)
+    |> Seq.contains spacePos 
+    |> not
     
 // Maps the starting position and first key press to string of keypresses.
 type MovesMap = Dictionary<char*char*char option, string>
