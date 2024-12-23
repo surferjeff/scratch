@@ -72,15 +72,41 @@ type Segment =
 | Defined of string
 | Undefined of string * string
 
+// Try to find a pair where the last character of a matches the first character of b.
+// This will minimize keystrokes at the next level.
+let joinMoves (a: string list) (b: string list) =
+    List.allPairs a b
+    |> List.tryFind (fun (a, b) -> a[a.Length-1] = b[0])
+    |> Option.map (fun (a, b) -> [a], [b])
+    |> Option.defaultValue ((List.take 1 a), b)
+
+// There are two options for some moves from one key to another.  Select a path
+// that minimizes key changes.
+let selectMoves (moves: string list seq) =
+    let head = Seq.head moves
+    let tail = Seq.tail moves
+    tail
+    |> Seq.fold (fun past next ->
+        let pastHead, newHead = joinMoves (List.head past) next
+        newHead :: pastHead :: List.tail past
+    ) [head]
+    |> List.collect id
+    |> List.append [""]
+    |> List.rev
+    |> String.concat "A"
+
 let enumMovesInPattern (movesMap: MovesMap) (pattern: char seq) =
     pattern
     |> Seq.append "A"
     |> Seq.pairwise
     |> Seq.map (fun keyPresses -> Map.find keyPresses movesMap)
+    |> Seq.filter (not << List.isEmpty)
 
-"379A"
+"029A"
 |> enumMovesInPattern numberMoves
-|> printf "%A"
+|> pipePrint "%A"
+|> selectMoves
+|> printfn "%A"
 
 // let enumMovesInPattern (movesMap: MovesMap) (pattern: string) =
 //     let mutable moves = []
