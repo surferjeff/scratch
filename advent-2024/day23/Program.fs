@@ -9,11 +9,11 @@ let findTriangles (graph: Map<string, Set<string>>) =
     |> Map.toSeq
     |> Seq.collect (fun (u, neighborsU) ->
         neighborsU
-        |> Seq.filter (fun v -> String.Compare(u, v) < 0)
+        |> Seq.filter (fun v -> String.CompareOrdinal(u, v) < 0)
         |> Seq.collect (fun v ->
             let neighborsV = graph.[v]
             Set.intersect neighborsU neighborsV
-            |> Seq.filter (fun w -> String.Compare(v, w) < 0)
+            |> Seq.filter (fun w -> String.CompareOrdinal(v, w) < 0)
             |> Seq.map (fun w -> [u; v; w])
         )
     )
