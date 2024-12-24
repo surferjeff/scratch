@@ -5,7 +5,7 @@ type Graph = Map<string, Set<string>>
 
 // Function to find triangles in an undirected graph using hash-based edge iterator
 let findTriangles (graph: Graph) =
-    let triangles = ResizeArray<(string * string * string)>()
+    let triangles = ResizeArray<string list>()
 
     // Iterate through each node in the graph
     for u in graph.Keys do
@@ -23,7 +23,7 @@ let findTriangles (graph: Graph) =
                 for w in commonNeighbors do
                     // Ensure v < w to avoid duplicate triangles
                     if String.Compare(v, w) < 0 then
-                        triangles.Add((u, v, w))
+                        triangles.Add([u; v; w])
 
     // Return the list of triangles
     triangles
