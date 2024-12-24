@@ -43,5 +43,7 @@ let main argv =
     |> Array.map (fun (line: string) -> line.Split('-'))
     |> Array.fold addEdge Map.empty
     |> findTriangles
-    |> Seq.iter (printfn "%A")
+    |> Seq.filter (List.exists (fun node -> node.Contains('t')))
+    |> Seq.length
+    |> printfn "part1: %d"
     0
