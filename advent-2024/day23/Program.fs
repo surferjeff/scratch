@@ -30,7 +30,7 @@ let addEdge (graph: Graph) (edge: string array) =
 
 
 // Find the largest clique (fully connected set of nodes) in an undirected graph
-let largestClique (graph: Map<string, Set<string>>) =
+let largestClique (graph: Graph) =
     let rec expandClique clique candidates =
         match candidates with
         | [] -> clique
