@@ -19,9 +19,9 @@ let propagate (allWires: Map<string, int>) (gateName: string, gate: Gate) =
     if List.isEmpty wires then
         let signal =
             match gate.Op with
-            | "AND" -> List.fold (&&&) 1 gate.Signals
-            | "OR" -> List.fold (|||) 0 gate.Signals
-            | "XOR" -> List.fold (^^^) 0 gate.Signals
+            | "AND" -> List.fold (&&&) 1 signals
+            | "OR" -> List.fold (|||) 0 signals
+            | "XOR" -> List.fold (^^^) 0 signals
             | bad -> failwithf "Bad operation %s" bad
         Map.add gateName signal allWires, None
     else
