@@ -3,30 +3,21 @@ open System.IO
 
 type Graph = Map<string, Set<string>>
 
-// Function to find triangles in an undirected graph using hash-based edge iterator
-let findTriangles (graph: Graph) =
-    let triangles = ResizeArray<string list>()
-
-    // Iterate through each node in the graph
-    for u in graph.Keys do
-        // Get neighbors of 'u'
-        let neighborsU = graph.[u]
-
-        for v in neighborsU do
-            // Ensure u < v to avoid duplicate pairs
-            if String.Compare(u, v) < 0 then
-                let neighborsV = graph.[v]
-
-                // Find the intersection of neighbors of 'u' and 'v'
-                let commonNeighbors = Set.intersect neighborsU neighborsV
-
-                for w in commonNeighbors do
-                    // Ensure v < w to avoid duplicate triangles
-                    if String.Compare(v, w) < 0 then
-                        triangles.Add([u; v; w])
-
-    // Return the list of triangles
-    triangles
+// Find triangles in an undirected graph using hash-based edge iterator
+let findTriangles (graph: Map<string, Set<string>>) =
+    graph
+    |> Map.toSeq
+    |> Seq.collect (fun (u, neighborsU) ->
+        neighborsU
+        |> Seq.filter (fun v -> String.Compare(u, v) < 0)
+        |> Seq.collect (fun v ->
+            let neighborsV = graph.[v]
+            Set.intersect neighborsU neighborsV
+            |> Seq.filter (fun w -> String.Compare(v, w) < 0)
+            |> Seq.map (fun w -> [u; v; w])
+        )
+    )
+    |> Seq.toList
 
 let addEdge (graph: Graph) (edge: string array) =
     graph
