@@ -29,51 +29,44 @@ let addEdge (graph: Graph) (edge: string array) =
         | None -> Some (Set.ofList [edge[0]]))
 
 
-let addEdge2 (sets: Map<string, int>) compA compB setId =
-    match Map.tryFind compA sets, Map.tryFind compB sets with
-    | None, None -> sets |> Map.add compA setId |> Map.add compB setId
-    | Some(n), None -> sets |> Map.add compB n
-    | None, Some(n) -> sets |> Map.add compA n
-    | Some(n), Some(m) when n = m -> 
-        sets
-    | Some(n), Some(m) ->
-        // Merge the two sets
-        sets
-        |> Map.toList
-        |> List.choose (fun (key, valu) -> if valu = n then Some(key) else None)
-        |> List.fold (fun sets comp -> Map.add comp m sets) sets
+// Find the largest clique (fully connected set of nodes) in an undirected graph
+
+// Function to find the largest clique (fully connected set of nodes) in an undirected graph using a greedy algorithm
+let largestClique (graph: Map<string, Set<string>>) =
+    let rec expandClique clique candidates =
+        match candidates with
+        | [] -> clique
+        | candidate :: rest ->
+            let newClique = candidate :: clique
+            let newCandidates =
+                rest
+                |> List.filter (fun n ->
+                    newClique |> List.forall (fun c -> graph.[c].Contains n))
+            expandClique newClique newCandidates
+
+    graph.Keys
+    |> Seq.toList
+    |> List.map (fun node ->
+        let neighbors = graph.[node] |> Set.toList
+        expandClique [node] neighbors)
+    |> List.maxBy List.length
 
 [<EntryPoint>]
 let main argv =
-    let edges = 
+    let graph = 
         File.ReadAllLines argv[0]
         |> Array.map (fun (line: string) -> line.Split('-'))
-
-    edges
-    |> Array.fold addEdge Map.empty
+        |> Array.fold addEdge Map.empty
+    graph
     |> findTriangles
     |> Seq.filter (List.exists (fun node -> node.StartsWith('t')))
     |> Seq.length
     |> printfn "part1: %d"
 
-    let sets =
-        edges
-        |> Array.fold (fun (sets, i) comps ->
-            addEdge2 sets comps[0] comps[1] i, i + 1 ) (Map.empty, 0)
-        |> fst
-    let largestGroupId =
-        sets
-        |> Map.values
-        |> Seq.groupBy id
-        |> Seq.map (fun (setId, setIds) -> setId, Seq.length setIds )
-        |> Seq.maxBy (fun (groupId, count) -> count)
-        |> fst
-    sets
-    |> Map.toList
-    |> List.filter (fun (comp, group) -> group = largestGroupId)
-    |> List.map fst
+    graph
+    |> largestClique
     |> List.sort
     |> String.concat ","
-    |> printfn "%s"
+    |> printfn "part2: %s"
 
     0
