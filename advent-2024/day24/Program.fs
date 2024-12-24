@@ -2,6 +2,7 @@
 
 [<Struct>]
 type Gate = {
+    Name: string
     Wires: string list
     Signals: int list
     Op: string
@@ -9,7 +10,7 @@ type Gate = {
 
 // Checks to see if gate's input wires are carrying a signal.  If so, updates
 // allWires with its signal and returns None.
-let propagate (allWires: Map<string, int>) (gateName: string, gate: Gate) =
+let propagate (allWires: Map<string, int>) (gate: Gate) =
     let wires, signals =
         gate.Wires
         |> List.fold (fun (gateWires, signals) wire ->
@@ -23,7 +24,7 @@ let propagate (allWires: Map<string, int>) (gateName: string, gate: Gate) =
             | "OR" -> List.fold (|||) 0 signals
             | "XOR" -> List.fold (^^^) 0 signals
             | bad -> failwithf "Bad operation %s" bad
-        Map.add gateName signal allWires, None
+        Map.add gate.Name signal allWires, None
     else
         allWires, Some {gate with Wires = wires; Signals = signals}
 
@@ -40,10 +41,15 @@ let main argv =
             elif line.Contains("->") then
                 let words = line.Split() |> Array.map (fun s -> s.Trim())
                 let [| wireA; op; wireB; _; wireC |] = words
-                (wires, (wireC, { Wires = [wireA; wireB]; Signals = []; Op = op}) :: gates)
+                (wires, { Name = wireC; Wires = [wireA; wireB]; Signals = []; Op = op} :: gates)
             else
                 (wires, gates)
         ) (Map.empty, List.empty)
+
+    gates
+    |> List.scan (fun (wires, gates) gate ->
+        
+    ) (wires, List.empty)
 
     propagate wires (List.head gates) |> printfn "%A"
 
