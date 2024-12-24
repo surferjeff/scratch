@@ -29,9 +29,9 @@ let addEdge (graph: Graph) (edge: string array) =
         | None -> Some (Set.ofList [edge[0]]))
 
 
-let addEdge2 (sets: Map<string, int>) compA compB setNo =
+let addEdge2 (sets: Map<string, int>) compA compB setId =
     match Map.tryFind compA sets, Map.tryFind compB sets with
-    | None, None -> sets |> Map.add compA setNo |> Map.add compB setNo
+    | None, None -> sets |> Map.add compA setId |> Map.add compB setId
     | Some(n), None -> sets |> Map.add compB n
     | None, Some(n) -> sets |> Map.add compA n
     | Some(n), Some(m) when n = m -> sets
