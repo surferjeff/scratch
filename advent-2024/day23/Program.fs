@@ -34,7 +34,8 @@ let addEdge2 (sets: Map<string, int>) compA compB setId =
     | None, None -> sets |> Map.add compA setId |> Map.add compB setId
     | Some(n), None -> sets |> Map.add compB n
     | None, Some(n) -> sets |> Map.add compA n
-    | Some(n), Some(m) when n = m -> sets
+    | Some(n), Some(m) when n = m -> 
+        sets
     | Some(n), Some(m) ->
         // Merge the two sets
         sets
