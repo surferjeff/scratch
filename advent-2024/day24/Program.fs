@@ -31,7 +31,7 @@ let propagate (allWires: Map<string, int>) (gate: Gate) =
 
 [<EntryPoint>]
 let main argv =
-    let wires, gates =
+    let mutable wires, gates =
         File.ReadAllLines argv[0]
         |> Array.fold (fun (wires, gates) line ->
             if line.Contains(':') then
@@ -46,14 +46,26 @@ let main argv =
                 (wires, gates)
         ) (Map.empty, List.empty)
 
-    let wires, gates = 
-        gates
-        |> List.fold (fun (wires, gates) gate ->
-            match propagate wires gate with
-            | wires, None -> wires, gates
-            | wires, Some gate -> wires, gate :: gates
-        ) (wires, List.empty)
+    while not (List.isEmpty gates) do
+        let nextWires, nextGates = 
+            gates
+            |> List.fold (fun (wires, gates) gate ->
+                match propagate wires gate with
+                | wires, None -> wires, gates
+                | wires, Some gate -> wires, gate :: gates
+            ) (wires, List.empty)
+        wires <- nextWires
+        gates <- nextGates
 
     printfn "wires: %A\ngates: %A" wires gates
+
+    let mutable z = 0
+    for i in 0..99 do 
+        let wire = sprintf "z%02d" i
+        match wires |> Map.tryFind wire with
+        |  Some n -> z <- z ||| (n <<< i)
+        | _ -> ()
+
+    printfn "part1: %d" z
 
     0
