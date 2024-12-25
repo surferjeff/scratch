@@ -61,11 +61,11 @@ let main argv =
     for wire in wires do
         printfn "%s: %d" wire.Key wire.Value
 
-    let mutable z = 0
+    let mutable z = 0UL
     for i in 0..99 do 
         let wire = sprintf "z%02d" i
         match wires |> Map.tryFind wire with
-        |  Some n -> z <- z ||| (n <<< i)
+        |  Some n -> z <- z ||| ((uint64 n) <<< i)
         | _ -> ()
 
     printfn "part1: %d" z
