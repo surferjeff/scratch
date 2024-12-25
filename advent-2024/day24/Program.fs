@@ -46,11 +46,14 @@ let main argv =
                 (wires, gates)
         ) (Map.empty, List.empty)
 
-    gates
-    |> List.scan (fun (wires, gates) gate ->
-        
-    ) (wires, List.empty)
+    let wires, gates = 
+        gates
+        |> List.fold (fun (wires, gates) gate ->
+            match propagate wires gate with
+            | wires, None -> wires, gates
+            | wires, Some gate -> wires, gate :: gates
+        ) (wires, List.empty)
 
-    propagate wires (List.head gates) |> printfn "%A"
+    printfn "wires: %A\ngates: %A" wires gates
 
     0
