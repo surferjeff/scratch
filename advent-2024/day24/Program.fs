@@ -1,4 +1,5 @@
 ﻿open System.IO
+open System.Diagnostics
 
 [<Struct>]
 type Gate = {
@@ -16,7 +17,7 @@ let propagate (allWires: Map<string, int>) (gate: Gate) =
         |> List.fold (fun (gateWires, signals) wire ->
             match Map.tryFind wire allWires with
             | None -> (wire :: gateWires, signals)
-            | Some signal -> (gateWires, signal :: signals)) (List.empty, List.empty)
+            | Some signal -> (gateWires, signal :: signals)) (List.empty, gate.Signals)
     if List.isEmpty wires then
         let signal =
             match gate.Op with
@@ -27,7 +28,6 @@ let propagate (allWires: Map<string, int>) (gate: Gate) =
         Map.add gate.Name signal allWires, None
     else
         allWires, Some {gate with Wires = wires; Signals = signals}
-
 
 [<EntryPoint>]
 let main argv =
@@ -47,6 +47,7 @@ let main argv =
         ) (Map.empty, List.empty)
 
     while not (List.isEmpty gates) do
+        printfn "wires: %A" wires
         let nextWires, nextGates = 
             gates
             |> List.fold (fun (wires, gates) gate ->
@@ -56,8 +57,9 @@ let main argv =
             ) (wires, List.empty)
         wires <- nextWires
         gates <- nextGates
-
-    printfn "wires: %A\ngates: %A" wires gates
+    
+    for wire in wires do
+        printfn "%s: %d" wire.Key wire.Value
 
     let mutable z = 0
     for i in 0..99 do 
