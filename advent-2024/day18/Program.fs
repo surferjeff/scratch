@@ -37,18 +37,7 @@ let part1 inputPath dim take  =
         |> Array.take take
         |> Array.iter (fun [|col; row|] -> region[row, col] <- '#')
 
-    let found = findPath region
-
-    // Update the region with the path.
-    let displayRegion = Array2D.copy region
-    found |> List.iter (fun (row, col) -> displayRegion[row, col] <- 'O')
-    displayRegion
-        |> Array2D.iteri (fun row col c ->
-            match col with
-            | col when col - 1 = dim -> printfn "%c" c
-            | col -> printf "%c" c
-        )
-    List.length found - 1 |> printfn "part1: %d"
+    List.length (findPath region) - 1 |> printfn "part1: %d"
 
     byteDrops
     |> Array.skip take
