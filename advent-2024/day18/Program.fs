@@ -50,7 +50,18 @@ let part1 inputPath dim take  =
         )
     List.length found - 1 |> printfn "part1: %d"
 
-    // for (col, row) in Array.skip take 
+    byteDrops
+    |> Array.skip take
+    |> Array.pick (fun [|col; row|] ->
+        region |>
+            Array2D.iteri (fun irow icol c ->
+                if c = ',' then
+                    region[irow, icol] <- '.'
+            )
+        region[row, col] <- '#'
+        if findPath region = [] then Some (col - 1, row - 1)
+        else None)
+    |> printfn "part2: %A"
 
 [<EntryPoint>]
 let main argv =
