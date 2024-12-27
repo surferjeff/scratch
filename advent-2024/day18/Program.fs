@@ -1,10 +1,9 @@
 ﻿open System.IO
 open System.Collections.Generic
 
-[<EntryPoint>]
-let main argv =
+
+let part1 inputPath dim take  =
     // Create a region with a boundary of solid #.
-    let dim = 71
     let topBottom = String.replicate (dim + 2) "#"
     let middle = "#" + (String.replicate dim ".") + "#"
     let region =
@@ -14,8 +13,8 @@ let main argv =
         |> array2D
 
     // Mark the bytes falling into the region.
-    File.ReadAllLines argv[0]
-        |> Seq.take 1024
+    File.ReadAllLines inputPath
+        |> Seq.take take
         |> Seq.map (fun line -> line.Split(',') |> Array.map int)
         |> Seq.iter (fun [|col; row|] -> region[row + 1, col + 1] <- '#')
 
@@ -44,5 +43,11 @@ let main argv =
             | col -> printf "%c" c
         )
     List.length found - 1 |> printfn "%d"
+
+
+[<EntryPoint>]
+let main argv =
+    part1 "sample1.txt" 7 12
+    part1 "input.txt" 71 1024
 
     0
