@@ -19,7 +19,7 @@ let findPath (region: char array2d) =
             q.Enqueue(row, col - 1, tail)
     found
 
-let part1 inputPath dim take  =
+let solve inputPath dim take  =
     // Create a region with a boundary of solid #.
     let topBottom = String.replicate (dim + 2) "#"
     let middle = "#" + (String.replicate dim ".") + "#"
@@ -54,7 +54,6 @@ let part1 inputPath dim take  =
 
 [<EntryPoint>]
 let main argv =
-    part1 "sample1.txt" 7 12
-    part1 "input.txt" 71 1024
-
+    solve "sample1.txt" 7 12
+    solve "input.txt" 71 1024
     0
