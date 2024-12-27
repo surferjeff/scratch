@@ -30,23 +30,27 @@ let part1 inputPath dim take  =
         |> array2D
 
     // Mark the bytes falling into the region.
-    File.ReadAllLines inputPath
-        |> Seq.take take
-        |> Seq.map (fun line -> line.Split(',') |> Array.map int)
-        |> Seq.iter (fun [|col; row|] -> region[row + 1, col + 1] <- '#')
+    let byteDrops =
+        File.ReadAllLines inputPath
+        |> Array.map (fun line -> line.Split(',') |> Array.map (int >> ((+) 1)))
+    byteDrops
+        |> Array.take take
+        |> Array.iter (fun [|col; row|] -> region[row, col] <- '#')
 
     let found = findPath region
 
     // Update the region with the path.
-    found |> List.iter (fun (row, col) -> region[row, col] <- 'O')
-    region
+    let displayRegion = Array2D.copy region
+    found |> List.iter (fun (row, col) -> displayRegion[row, col] <- 'O')
+    displayRegion
         |> Array2D.iteri (fun row col c ->
             match col with
             | col when col - 1 = dim -> printfn "%c" c
             | col -> printf "%c" c
         )
-    List.length found - 1 |> printfn "%d"
+    List.length found - 1 |> printfn "part1: %d"
 
+    // for (col, row) in Array.skip take 
 
 [<EntryPoint>]
 let main argv =
