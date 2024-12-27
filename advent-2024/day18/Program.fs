@@ -4,7 +4,7 @@ open System.Collections.Generic
 [<EntryPoint>]
 let main argv =
     // Create a region with a boundary of solid #.
-    let dim = 7
+    let dim = 71
     let topBottom = String.replicate (dim + 2) "#"
     let middle = "#" + (String.replicate dim ".") + "#"
     let region =
@@ -15,7 +15,7 @@ let main argv =
 
     // Mark the bytes falling into the region.
     File.ReadAllLines argv[0]
-        |> Seq.take 12
+        |> Seq.take 1024
         |> Seq.map (fun line -> line.Split(',') |> Array.map int)
         |> Seq.iter (fun [|col; row|] -> region[row + 1, col + 1] <- '#')
 
