@@ -34,14 +34,14 @@ function enumerateMovesFrom(board, dotIndex) {
     if (canMove(board, board[dotIndex - 4], 4)) {
         result.push(['down', 4, board[dotIndex - 4]]);
     }
-    if (canMove(board, board[dotIndex + 4] -4)) {
+    if (canMove(board, board[dotIndex + 4], -4)) {
         result.push(['up', -4, board[dotIndex + 4]])
     }
     return result;
 }
 
 function canMove(board, letter, step) {
-    if (!letter) return false;
+    if (!letter || letter === '.') return false;
     for (let i = board.indexOf(letter); i >= 0; i = board.indexOf(letter, i+1)) {
         let adjacent = board[i + step];
         if (adjacent === letter || adjacent === '.') continue;
@@ -109,7 +109,7 @@ function solve(start) {
     let pushStack = [];
     let popStack = [ start ];
     let visited = new Set();
-    for (let n = 0; n < 100000; ++n) {
+    for (let n = 0; n < 10000000; ++n) {
         if (popStack.length === 0) {
             popStack = pushStack.reverse();
             pushStack = [];
@@ -118,7 +118,11 @@ function solve(start) {
         if (!board) {
             throw new Error("No solution!");
         }
-        for (const m of enumerateMoves(board)) {
+        const moves = enumerateMoves(board);
+        // console.log("============");
+        // logBoard(board);
+        // console.log(moves);
+        for (const m of moves) {
             const b = move(board, m[2], m[1]);
             if (/.............BB..BB./.test(b)) {
                 logBoard(b);
@@ -129,14 +133,18 @@ function solve(start) {
             if (!visited.has(signature)) {
                 visited.add(signature);
                 pushStack.push(b);
-                console.log("============");
-                logBoard(board);
-                console.log(m);
-                logBoard(b);
-                console.log("");
+                // console.log(m);
+                // logBoard(b);
+                // console.log("");
             }
         }
     }   
 }
 
 solve(start);
+
+// const test =
+//     "A.BB" +
+//     "AFBB" +
+//     "EEEE";
+// console.log(enumerateMoves(test));
