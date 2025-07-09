@@ -84,9 +84,59 @@ function swapChars(str, index1, index2) {
   );
 }
 
-logBoard(start);
-const moves = enumerateMoves(start);
-console.log(moves);
-let m = moves[0];
-let b = move(start, m[2], m[1]);
-logBoard(b)
+// logBoard(start);
+// const moves = enumerateMoves(start);
+// console.log(moves);
+// let m = moves[0];
+// let b = move(start, m[2], m[1]);
+// logBoard(b)
+
+const sigLetters = {
+    A: 'A',
+    C: 'A',
+    D: 'A',
+    F: 'A',
+    B: 'B',
+    E: 'E',
+    G: 'G',
+    H: 'H',
+    I: 'I',
+    J: 'J',
+    '.': '.'
+};
+
+function solve(start) {
+    let pushStack = [];
+    let popStack = [ start ];
+    let visited = new Set();
+    for (let n = 0; n < 100000; ++n) {
+        if (popStack.length === 0) {
+            popStack = pushStack.reverse();
+            pushStack = [];
+        }
+        let board = popStack.pop();
+        if (!board) {
+            throw new Error("No solution!");
+        }
+        for (const m of enumerateMoves(board)) {
+            const b = move(board, m[2], m[1]);
+            if (/.............BB..BB./.test(b)) {
+                logBoard(b);
+                console.log("Solved!");
+                return;
+            }
+            const signature = b.replace(/./.g, match => sigLetters[match]);
+            if (!visited.has(signature)) {
+                visited.add(signature);
+                pushStack.push(b);
+                console.log("============");
+                logBoard(board);
+                console.log(m);
+                logBoard(b);
+                console.log("");
+            }
+        }
+    }   
+}
+
+solve(start);
