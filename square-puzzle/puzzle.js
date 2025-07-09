@@ -99,9 +99,9 @@ const sigLetters = {
     B: 'B',
     E: 'E',
     G: 'G',
-    H: 'H',
-    I: 'I',
-    J: 'J',
+    H: 'G',
+    I: 'G',
+    J: 'G',
     '.': '.'
 };
 
