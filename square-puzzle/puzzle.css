@@ -2,6 +2,10 @@ body {
     font-family: Helvetica, Arial, sans-serif;
 }
 
+main {
+    display: block;
+}
+
 .board {
     background: #555555;
     width: 400px;
@@ -101,4 +105,12 @@ body {
     align-items: center;
     font-size: 50px;
     border-radius: 5px;
+    transition: top 1s, left 1s;
+}
+
+.button-row {
+    padding: 1em 0em;
+    width: 400px;
+    display: flex;
+    justify-content: center;
 }
