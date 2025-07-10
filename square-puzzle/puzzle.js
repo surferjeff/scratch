@@ -101,7 +101,8 @@ function solve(start) {
     let pushStack = [];
     let popStack = [ {board: start }];
     let visited = new Set();
-    for (let n = 0; n < 100000; ++n) {
+    const limit = 100000;
+    for (let n = 0; n < limit; ++n) {
         if (popStack.length === 0) {
             popStack = pushStack.reverse();
             pushStack = [];
@@ -123,10 +124,11 @@ function solve(start) {
                 pushStack.push({board: b, move: m, prev: top});
             }
         }
-    }   
+    }
+    throw new Error("Examined", limit, "moves and haven't found a solution!");
 }
 
-function main() {
+function nodeMain() {
     const steps = [];
     let step = solve(start);
     while (step) {
@@ -144,4 +146,19 @@ function main() {
     }
 }
 
-main()
+function renderBoard(board) {
+    let rendered = '';
+    for (let y = 0; y < 5; ++y) {
+        for (let x = 0; x < 4; ++x) {
+            const letter = board[y * 4 + x];
+            if (!"ABCDEFGHIJ".includes(letter)) continue;
+            if (rendered.includes(letter)) continue;
+            const el = document.getElementById(letter);
+            console.log(el, el.style.left, el.style.top);
+            el.style.left = x * 100 + 5;
+            el.style.top = y * 100 + 5;
+            console.log(letter, el.style.left, el.style.top);
+            rendered = rendered + letter;
+        }
+    }
+}
