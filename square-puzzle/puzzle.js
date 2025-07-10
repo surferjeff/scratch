@@ -154,10 +154,8 @@ function renderBoard(board) {
             if (!"ABCDEFGHIJ".includes(letter)) continue;
             if (rendered.includes(letter)) continue;
             const el = document.getElementById(letter);
-            console.log(el, el.style.left, el.style.top);
-            el.style.left = x * 100 + 5;
-            el.style.top = y * 100 + 5;
-            console.log(letter, el.style.left, el.style.top);
+            el.style.left = `${x * 100 + 5}px`;
+            el.style.top = `${y * 100 + 5}px`;
             rendered = rendered + letter;
         }
     }
