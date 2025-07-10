@@ -1,0 +1,818 @@
+ABBC
+ABBC
+DEEF
+DGHF
+I..J
+
+  1 Move I right
+ABBC
+ABBC
+DEEF
+DGHF
+.I.J
+
+  2 Move D down
+ABBC
+ABBC
+.EEF
+DGHF
+DI.J
+
+  3 Move E left
+ABBC
+ABBC
+EE.F
+DGHF
+DI.J
+
+  4 Move H up
+ABBC
+ABBC
+EEHF
+DG.F
+DI.J
+
+  5 Move J left
+ABBC
+ABBC
+EEHF
+DG.F
+DIJ.
+
+  6 Move F down
+ABBC
+ABBC
+EEH.
+DG.F
+DIJF
+
+  7 Move H right
+ABBC
+ABBC
+EE.H
+DG.F
+DIJF
+
+  8 Move E right
+ABBC
+ABBC
+.EEH
+DG.F
+DIJF
+
+  9 Move D up
+ABBC
+ABBC
+DEEH
+DG.F
+.IJF
+
+ 10 Move I left
+ABBC
+ABBC
+DEEH
+DG.F
+I.JF
+
+ 11 Move J left
+ABBC
+ABBC
+DEEH
+DG.F
+IJ.F
+
+ 12 Move F left
+ABBC
+ABBC
+DEEH
+DGF.
+IJF.
+
+ 13 Move H down
+ABBC
+ABBC
+DEE.
+DGFH
+IJF.
+
+ 14 Move E right
+ABBC
+ABBC
+D.EE
+DGFH
+IJF.
+
+ 15 Move G up
+ABBC
+ABBC
+DGEE
+D.FH
+IJF.
+
+ 16 Move J up
+ABBC
+ABBC
+DGEE
+DJFH
+I.F.
+
+ 17 Move I right
+ABBC
+ABBC
+DGEE
+DJFH
+.IF.
+
+ 18 Move D down
+ABBC
+ABBC
+.GEE
+DJFH
+DIF.
+
+ 19 Move G left
+ABBC
+ABBC
+G.EE
+DJFH
+DIF.
+
+ 20 Move E left
+ABBC
+ABBC
+GEE.
+DJFH
+DIF.
+
+ 21 Move C down
+ABB.
+ABBC
+GEEC
+DJFH
+DIF.
+
+ 22 Move H down
+ABB.
+ABBC
+GEEC
+DJF.
+DIFH
+
+ 23 Move C down
+ABB.
+ABB.
+GEEC
+DJFC
+DIFH
+
+ 24 Move B right
+A.BB
+A.BB
+GEEC
+DJFC
+DIFH
+
+ 25 Move A right
+.ABB
+.ABB
+GEEC
+DJFC
+DIFH
+
+ 26 Move G up
+.ABB
+GABB
+.EEC
+DJFC
+DIFH
+
+ 27 Move G up
+GABB
+.ABB
+.EEC
+DJFC
+DIFH
+
+ 28 Move D up
+GABB
+.ABB
+DEEC
+DJFC
+.IFH
+
+ 29 Move D up
+GABB
+DABB
+DEEC
+.JFC
+.IFH
+
+ 30 Move J left
+GABB
+DABB
+DEEC
+J.FC
+.IFH
+
+ 31 Move I left
+GABB
+DABB
+DEEC
+J.FC
+I.FH
+
+ 32 Move F left
+GABB
+DABB
+DEEC
+JF.C
+IF.H
+
+ 33 Move H left
+GABB
+DABB
+DEEC
+JF.C
+IFH.
+
+ 34 Move H up
+GABB
+DABB
+DEEC
+JFHC
+IF..
+
+ 35 Move C down
+GABB
+DABB
+DEE.
+JFHC
+IF.C
+
+ 36 Move E right
+GABB
+DABB
+D.EE
+JFHC
+IF.C
+
+ 37 Move F up
+GABB
+DABB
+DFEE
+JFHC
+I..C
+
+ 38 Move I right
+GABB
+DABB
+DFEE
+JFHC
+.I.C
+
+ 39 Move I right
+GABB
+DABB
+DFEE
+JFHC
+..IC
+
+ 40 Move F down
+GABB
+DABB
+D.EE
+JFHC
+.FIC
+
+ 41 Move A down
+G.BB
+DABB
+DAEE
+JFHC
+.FIC
+
+ 42 Move G right
+.GBB
+DABB
+DAEE
+JFHC
+.FIC
+
+ 43 Move D up
+DGBB
+DABB
+.AEE
+JFHC
+.FIC
+
+ 44 Move J up
+DGBB
+DABB
+JAEE
+.FHC
+.FIC
+
+ 45 Move F left
+DGBB
+DABB
+JAEE
+F.HC
+F.IC
+
+ 46 Move A down
+DGBB
+D.BB
+JAEE
+FAHC
+F.IC
+
+ 47 Move A down
+DGBB
+D.BB
+J.EE
+FAHC
+FAIC
+
+ 48 Move J right
+DGBB
+D.BB
+.JEE
+FAHC
+FAIC
+
+ 49 Move J up
+DGBB
+DJBB
+..EE
+FAHC
+FAIC
+
+ 50 Move E left
+DGBB
+DJBB
+.EE.
+FAHC
+FAIC
+
+ 51 Move E left
+DGBB
+DJBB
+EE..
+FAHC
+FAIC
+
+ 52 Move C up
+DGBB
+DJBB
+EE.C
+FAHC
+FAI.
+
+ 53 Move I right
+DGBB
+DJBB
+EE.C
+FAHC
+FA.I
+
+ 54 Move H down
+DGBB
+DJBB
+EE.C
+FA.C
+FAHI
+
+ 55 Move C left
+DGBB
+DJBB
+EEC.
+FAC.
+FAHI
+
+ 56 Move I up
+DGBB
+DJBB
+EEC.
+FACI
+FAH.
+
+ 57 Move H right
+DGBB
+DJBB
+EEC.
+FACI
+FA.H
+
+ 58 Move C down
+DGBB
+DJBB
+EE..
+FACI
+FACH
+
+ 59 Move E right
+DGBB
+DJBB
+.EE.
+FACI
+FACH
+
+ 60 Move D down
+.GBB
+DJBB
+DEE.
+FACI
+FACH
+
+ 61 Move G left
+G.BB
+DJBB
+DEE.
+FACI
+FACH
+
+ 62 Move J up
+GJBB
+D.BB
+DEE.
+FACI
+FACH
+
+ 63 Move E right
+GJBB
+D.BB
+D.EE
+FACI
+FACH
+
+ 64 Move A up
+GJBB
+D.BB
+DAEE
+FACI
+F.CH
+
+ 65 Move A up
+GJBB
+DABB
+DAEE
+F.CI
+F.CH
+
+ 66 Move C left
+GJBB
+DABB
+DAEE
+FC.I
+FC.H
+
+ 67 Move I left
+GJBB
+DABB
+DAEE
+FCI.
+FC.H
+
+ 68 Move I down
+GJBB
+DABB
+DAEE
+FC..
+FCIH
+
+ 69 Move E down
+GJBB
+DABB
+DA..
+FCEE
+FCIH
+
+ 70 Move B down
+GJ..
+DABB
+DABB
+FCEE
+FCIH
+
+ 71 Move J right
+G.J.
+DABB
+DABB
+FCEE
+FCIH
+
+ 72 Move G right
+.GJ.
+DABB
+DABB
+FCEE
+FCIH
+
+ 73 Move D up
+DGJ.
+DABB
+.ABB
+FCEE
+FCIH
+
+ 74 Move J right
+DG.J
+DABB
+.ABB
+FCEE
+FCIH
+
+ 75 Move G right
+D.GJ
+DABB
+.ABB
+FCEE
+FCIH
+
+ 76 Move A up
+DAGJ
+DABB
+..BB
+FCEE
+FCIH
+
+ 77 Move F up
+DAGJ
+DABB
+F.BB
+FCEE
+.CIH
+
+ 78 Move C up
+DAGJ
+DABB
+FCBB
+FCEE
+..IH
+
+ 79 Move I left
+DAGJ
+DABB
+FCBB
+FCEE
+.I.H
+
+ 80 Move I left
+DAGJ
+DABB
+FCBB
+FCEE
+I..H
+
+ 81 Move H left
+DAGJ
+DABB
+FCBB
+FCEE
+I.H.
+
+ 82 Move H left
+DAGJ
+DABB
+FCBB
+FCEE
+IH..
+
+ 83 Move E down
+DAGJ
+DABB
+FCBB
+FC..
+IHEE
+
+ 84 Move B down
+DAGJ
+DA..
+FCBB
+FCBB
+IHEE
+
+ 85 Move G down
+DA.J
+DAG.
+FCBB
+FCBB
+IHEE
+
+ 86 Move G right
+DA.J
+DA.G
+FCBB
+FCBB
+IHEE
+
+ 87 Move A right
+D.AJ
+D.AG
+FCBB
+FCBB
+IHEE
+
+ 88 Move C up
+D.AJ
+DCAG
+FCBB
+F.BB
+IHEE
+
+ 89 Move C up
+DCAJ
+DCAG
+F.BB
+F.BB
+IHEE
+
+ 90 Move B left
+DCAJ
+DCAG
+FBB.
+FBB.
+IHEE
+
+ 91 Move G down
+DCAJ
+DCA.
+FBBG
+FBB.
+IHEE
+
+ 92 Move J down
+DCA.
+DCAJ
+FBBG
+FBB.
+IHEE
+
+ 93 Move G down
+DCA.
+DCAJ
+FBB.
+FBBG
+IHEE
+
+ 94 Move J down
+DCA.
+DCA.
+FBBJ
+FBBG
+IHEE
+
+ 95 Move A right
+DC.A
+DC.A
+FBBJ
+FBBG
+IHEE
+
+ 96 Move C right
+D.CA
+D.CA
+FBBJ
+FBBG
+IHEE
+
+ 97 Move D right
+.DCA
+.DCA
+FBBJ
+FBBG
+IHEE
+
+ 98 Move F up
+.DCA
+FDCA
+FBBJ
+.BBG
+IHEE
+
+ 99 Move F up
+FDCA
+FDCA
+.BBJ
+.BBG
+IHEE
+
+100 Move B left
+FDCA
+FDCA
+BB.J
+BB.G
+IHEE
+
+101 Move J left
+FDCA
+FDCA
+BBJ.
+BB.G
+IHEE
+
+102 Move G up
+FDCA
+FDCA
+BBJG
+BB..
+IHEE
+
+103 Move E up
+FDCA
+FDCA
+BBJG
+BBEE
+IH..
+
+104 Move H right
+FDCA
+FDCA
+BBJG
+BBEE
+I.H.
+
+105 Move I right
+FDCA
+FDCA
+BBJG
+BBEE
+.IH.
+
+106 Move H right
+FDCA
+FDCA
+BBJG
+BBEE
+.I.H
+
+107 Move I right
+FDCA
+FDCA
+BBJG
+BBEE
+..IH
+
+108 Move B down
+FDCA
+FDCA
+..JG
+BBEE
+BBIH
+
+109 Move J left
+FDCA
+FDCA
+.J.G
+BBEE
+BBIH
+
+110 Move J left
+FDCA
+FDCA
+J..G
+BBEE
+BBIH
+
+111 Move G left
+FDCA
+FDCA
+J.G.
+BBEE
+BBIH
+
+112 Move G left
+FDCA
+FDCA
+JG..
+BBEE
+BBIH
+
+113 Move E up
+FDCA
+FDCA
+JGEE
+BB..
+BBIH
+
+114 Move I up
+FDCA
+FDCA
+JGEE
+BBI.
+BB.H
+
+115 Move I right
+FDCA
+FDCA
+JGEE
+BB.I
+BB.H
+
+116 Move B right
+FDCA
+FDCA
+JGEE
+.BBI
+.BBH
+

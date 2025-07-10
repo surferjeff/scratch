@@ -1,5 +1,3 @@
-
-
 const start = (
     "ABBC" +
     "ABBC" +
@@ -84,13 +82,6 @@ function swapChars(str, index1, index2) {
   );
 }
 
-// logBoard(start);
-// const moves = enumerateMoves(start);
-// console.log(moves);
-// let m = moves[0];
-// let b = move(start, m[2], m[1]);
-// logBoard(b)
-
 const sigLetters = {
     A: 'A',
     C: 'A',
@@ -105,46 +96,52 @@ const sigLetters = {
     '.': '.'
 };
 
+
 function solve(start) {
     let pushStack = [];
-    let popStack = [ start ];
+    let popStack = [ {board: start }];
     let visited = new Set();
     for (let n = 0; n < 100000; ++n) {
         if (popStack.length === 0) {
             popStack = pushStack.reverse();
             pushStack = [];
         }
-        let board = popStack.pop();
-        if (!board) {
+        let top = popStack.pop();
+        if (!top) {
             throw new Error("No solution!");
         }
+        const board = top.board;
         const moves = enumerateMoves(board);
-        // console.log("============");
-        // logBoard(board);
-        // console.log(moves);
         for (const m of moves) {
             const b = move(board, m[2], m[1]);
             if (/.............BB..BB./.test(b)) {
-                logBoard(b);
-                console.log("Solved!");
-                return;
+                return {board: b, move: m, prev: top};
             }
             const signature = b.replace(/./g, match => sigLetters[match]);
             if (!visited.has(signature)) {
                 visited.add(signature);
-                pushStack.push(b);
-                // console.log(m);
-                // logBoard(b);
-                // console.log("");
+                pushStack.push({board: b, move: m, prev: top});
             }
         }
     }   
 }
 
-solve(start);
+function main() {
+    const steps = [];
+    let step = solve(start);
+    while (step) {
+        steps.push(step);
+        step = step.prev;
+    }
+    steps.reverse();
+    for (const [i, step] of steps.entries()) {
+        if (step.move) {
+            console.log(String(i).padStart(3, " "), "Move", step.move[2],
+                step.move[0])
+        }
+        logBoard(step.board)
+        console.log();
+    }
+}
 
-// const test =
-//     "A.BB" +
-//     "AFBB" +
-//     "EEEE";
-// console.log(enumerateMoves(test));
+main()
