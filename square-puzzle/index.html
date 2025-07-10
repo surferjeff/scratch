@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Square Root Puzzle</title>
+    <script src="puzzle.js"></script>
+    <link rel="stylesheet" href="puzzle.css"></style>
+</head>
+<body>
+
+<main>
+
+    <div class="board">
+        <div id="A" class="tall block">A</div>
+        <div id="B" class="big block">B</div>
+        <div id="C" class="tall block">C</div>
+        <div id="D" class="tall block">D</div>
+        <div id="E" class="wide block">E</div>
+        <div id="F" class="tall block">F</div>
+        <div id="G" class="small block">G</div>
+        <div id="H" class="small block">H</div>
+        <div id="I" class="small block">I</div>
+        <div id="J" class="small block">J</div>
+        <div class="slot"></div>
+    </div>
+
+    <div class="button-row">
+        <button id="solve-it" onclick="solveIt()" >Solve It</button>
+    </div>
+
+</main>
+
+<script>renderBoard(start);</script>
+</body>
+</html>

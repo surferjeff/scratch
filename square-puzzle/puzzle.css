@@ -1,0 +1,134 @@
+body {
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+main {
+    display: block;
+}
+
+.board {
+    background: #555555;
+    width: 400px;
+    height: 500px;
+    display: grid;
+    position: relative;
+    border: 10px solid brown;
+    border-radius: 5px;
+    z-index: 0;
+}        
+
+#A {
+    top: 5px;
+    left: 5px;
+    background: pink;
+}
+
+#B {
+    top: 5px;
+    left: 105px;
+    background: cornflowerblue;
+    color: white;
+}
+
+#C {
+    top: 5px;
+    left: 305px;
+    background: bisque;
+}
+
+#D {
+    top: 205px;
+    left: 5px;
+    background: lawngreen;
+}
+
+#E {
+    top: 205px;
+    left: 105px;
+    background: mistyrose;
+}
+
+#F {
+    top: 205px;
+    left: 305px;
+    background: plum;
+}
+
+#G {
+    top: 305px;
+    left: 105px;
+    background: turquoise;
+}
+
+
+#H {
+    top: 305px;
+    left: 205px;
+    background: violet;
+}
+
+#I {
+    top: 405px;
+    left: 5px;
+    background: lavenderblush;
+}
+
+
+#J {
+    top: 405px;
+    left: 305px;
+    background: khaki;
+}
+
+.tall {
+    width: 90px;
+    height: 190px;
+}
+
+.big {
+    width: 190px;
+    height: 190px;
+}
+
+.small {
+    width: 90px;
+    height: 90px;
+}
+
+.wide {
+    width: 190px;
+    height: 90px;
+}
+
+.block {
+    position: absolute;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    font-size: 50px;
+    border-radius: 5px;
+    transition: top 1s, left 1s;
+    z-index: 100;
+}
+
+.button-row {
+    padding: 1em 0em;
+    width: 420px;
+    display: flex;
+    justify-content: center;
+}
+
+#solve-it {
+    font-size: 2em;
+    padding: 1em;
+}
+
+.slot {
+    z-index: 10;
+    position: absolute;
+    background: white;
+    left: 100px;
+    top: 500px;
+    width: 200px;
+    height: 10px;
+}
