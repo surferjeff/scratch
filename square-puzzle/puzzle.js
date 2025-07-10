@@ -128,14 +128,19 @@ function solve(start) {
     throw new Error("Examined", limit, "moves and haven't found a solution!");
 }
 
-function nodeMain() {
+function reverseSolution(finalStep) {
     const steps = [];
-    let step = solve(start);
+    let step = finalStep;
     while (step) {
         steps.push(step);
         step = step.prev;
     }
     steps.reverse();
+    return steps;
+}
+
+function nodeMain() {
+    const steps = reverseSolution(solve(start));
     for (const [i, step] of steps.entries()) {
         if (step.move) {
             console.log(String(i).padStart(3, " "), "Move", step.move[2],
@@ -158,5 +163,13 @@ function renderBoard(board) {
             el.style.top = `${y * 100 + 5}px`;
             rendered = rendered + letter;
         }
+    }
+}
+
+async function solveIt() {
+    const steps = reverseSolution(solve(start));
+    for (const step of steps) {
+        renderBoard(step.board);
+        await new Promise(resolve => window.setTimeout(resolve, 1500));
     }
 }

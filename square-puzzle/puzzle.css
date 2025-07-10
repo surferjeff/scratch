@@ -114,3 +114,8 @@ main {
     display: flex;
     justify-content: center;
 }
+
+.solve-it {
+    font-size: 2em;
+    padding: 1em;
+}
