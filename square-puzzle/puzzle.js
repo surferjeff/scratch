@@ -22,10 +22,6 @@ function logBoard(board) {
  * Enumerates possible moves given the board.
  * @param {string} board - the puzzle board
  * @returns An array of possible moves with the given board state.
- *          Each move is [direction {string}, step {number}, letter {string}].
- * 
- * direction and step are redundant.  One can always be determined by the other.
- * but returning both is convenient.
  */
 function enumerateMoves(board) {
     let empty1 = board.indexOf('.');
@@ -40,25 +36,21 @@ function enumerateMoves(board) {
  * @param {string} board - the puzzle board
  * @param {number} dotIndex - the index of an empty space in the board
  * @returns An array of possible moves with the given board state.
- *          Each move is [direction {string}, step {number}, letter {string}].
- * 
- * direction and step are redundant.  One can always be determined by the other,
- * but returning both is convenient.
  */
 function enumerateMovesFrom(board, dotIndex) {
     let dotX = dotIndex % 4;
     let result = [];
     if (dotX > 0 && canMove(board, board[dotIndex-1], 1)) {
-        result.push(['right', 1, board[dotIndex-1]]);
+        result.push({dirName: 'right', step: 1, letter: board[dotIndex-1]});
     }
     if (dotX < 3 && canMove(board, board[dotIndex+1], -1)) {
-        result.push(['left', -1, board[dotIndex+1]]);
+        result.push({dirName: 'left', step: -1, letter: board[dotIndex+1]});
     }
     if (canMove(board, board[dotIndex - 4], 4)) {
-        result.push(['down', 4, board[dotIndex - 4]]);
+        result.push({dirName: 'down', step: 4, letter: board[dotIndex - 4]});
     }
     if (canMove(board, board[dotIndex + 4], -4)) {
-        result.push(['up', -4, board[dotIndex + 4]])
+        result.push({dirName: 'up', step: -4, letter: board[dotIndex + 4]});
     }
     return result;
 }
@@ -170,7 +162,7 @@ function solve(start) {
         const board = top.board;
         const moves = enumerateMoves(board);
         for (const m of moves) {
-            const b = move(board, m[2], m[1]);
+            const b = move(board, m.letter, m.step);
             if (/.............BB..BB./.test(b)) {
                 return {board: b, move: m, prev: top};
             }
@@ -198,21 +190,6 @@ function reverseSolution(finalStep) {
     }
     steps.reverse();
     return steps;
-}
-
-/**
- * Solves the puzzle, and writes the solution to the console.
- */
-function nodeMain() {
-    const steps = reverseSolution(solve(start));
-    for (const [i, step] of steps.entries()) {
-        if (step.move) {
-            console.log(String(i).padStart(3, " "), "Move", step.move[2],
-                step.move[0])
-        }
-        logBoard(step.board)
-        console.log();
-    }
 }
 
 /**
@@ -246,4 +223,21 @@ async function solveIt() {
     }
     const el = document.getElementById("B");
     el.style.top = "520px";
+}
+
+
+const isNode = (typeof process !== 'undefined' && process.versions != null
+    && process.versions.node != null);
+
+if (isNode) {
+    // Solve the puzzle, and writes the solution to the console.
+    const steps = reverseSolution(solve(start));
+    for (const [i, step] of steps.entries()) {
+        if (step.move) {
+            console.log(String(i).padStart(3, " "), "Move", step.move.letter,
+                step.move.dirName);
+        }
+        logBoard(step.board)
+        console.log();
+    }
 }
