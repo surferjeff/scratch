@@ -109,7 +109,7 @@ function solve(start) {
     let pushStack = [];
     let popStack = [ start ];
     let visited = new Set();
-    for (let n = 0; n < 10000000; ++n) {
+    for (let n = 0; n < 100000; ++n) {
         if (popStack.length === 0) {
             popStack = pushStack.reverse();
             pushStack = [];
@@ -129,7 +129,7 @@ function solve(start) {
                 console.log("Solved!");
                 return;
             }
-            const signature = b.replace(/./.g, match => sigLetters[match]);
+            const signature = b.replace(/./g, match => sigLetters[match]);
             if (!visited.has(signature)) {
                 visited.add(signature);
                 pushStack.push(b);
