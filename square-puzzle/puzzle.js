@@ -167,8 +167,9 @@ function renderBoard(board) {
 }
 
 async function solveIt() {
+    document.getElementById("solve-it").style.display = "none";
     const steps = reverseSolution(solve(start));
-    for (const step of steps) {
+    for (const step of steps.slice(1)) {
         renderBoard(step.board);
         await new Promise(resolve => window.setTimeout(resolve, 1500));
     }

@@ -118,7 +118,7 @@ main {
     justify-content: center;
 }
 
-.solve-it {
+#solve-it {
     font-size: 2em;
     padding: 1em;
 }
@@ -126,7 +126,7 @@ main {
 .slot {
     z-index: 10;
     position: absolute;
-    background: #555555;
+    background: white;
     left: 100px;
     top: 500px;
     width: 200px;
