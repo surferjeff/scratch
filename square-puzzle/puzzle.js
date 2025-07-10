@@ -19,7 +19,7 @@ function logBoard(board) {
 }
 
 /**
- * 
+ * Enumerates possible moves given the board.
  * @param {string} board - the puzzle board
  * @returns An array of possible moves with the given board state.
  *          Each move is [direction {string}, step {number}, letter {string}].
