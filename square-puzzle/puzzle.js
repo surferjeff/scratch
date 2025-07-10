@@ -172,4 +172,6 @@ async function solveIt() {
         renderBoard(step.board);
         await new Promise(resolve => window.setTimeout(resolve, 1500));
     }
+    const el = document.getElementById("B");
+    el.style.top = "520px";
 }
