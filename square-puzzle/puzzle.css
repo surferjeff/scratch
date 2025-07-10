@@ -1,0 +1,104 @@
+body {
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+.board {
+    background: #555555;
+    width: 400px;
+    height: 500px;
+    display: grid;
+    position: relative;
+    border-radius: 5px;
+}        
+
+#A {
+    top: 5px;
+    left: 5px;
+    background: pink;
+}
+
+#B {
+    top: 5px;
+    left: 105px;
+    background: cornflowerblue;
+    color: white;
+}
+
+#C {
+    top: 5px;
+    left: 305px;
+    background: bisque;
+}
+
+#D {
+    top: 205px;
+    left: 5px;
+    background: lawngreen;
+}
+
+#E {
+    top: 205px;
+    left: 105px;
+    background: mistyrose;
+}
+
+#F {
+    top: 205px;
+    left: 305px;
+    background: plum;
+}
+
+#G {
+    top: 305px;
+    left: 105px;
+    background: turquoise;
+}
+
+
+#H {
+    top: 305px;
+    left: 205px;
+    background: violet;
+}
+
+#I {
+    top: 405px;
+    left: 5px;
+    background: lavenderblush;
+}
+
+
+#J {
+    top: 405px;
+    left: 305px;
+    background: khaki;
+}
+
+.tall {
+    width: 90px;
+    height: 190px;
+}
+
+.big {
+    width: 190px;
+    height: 190px;
+}
+
+.small {
+    width: 90px;
+    height: 90px;
+}
+
+.wide {
+    width: 190px;
+    height: 90px;
+}
+
+.block {
+    position: absolute;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    font-size: 50px;
+    border-radius: 5px;
+}
