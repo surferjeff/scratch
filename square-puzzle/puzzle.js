@@ -3,9 +3,9 @@
 const start = (
     "ABBC" +
     "ABBC" +
-    "DEEF" +
-    "DGHF" +
-    "I..J"
+    "DDEE" +
+    "F..G" +
+    "H..I"
 );
 
 /**
@@ -156,7 +156,7 @@ function solve(start) {
     let pushStack = [];
     let popStack = [ {board: start }];
     let visited = new Set();
-    const limit = 100000;
+    const limit = 1000000;
     for (let n = 0; n < limit; ++n) {
         // Get the next board in the queue.
         if (popStack.length === 0) {
@@ -181,7 +181,7 @@ function solve(start) {
             }
         }
     }
-    throw new Error("Examined", limit, "moves and haven't found a solution!");
+    throw new Error(`Examined ${limit} moves and haven't found a solution!`);
 }
 
 /**
