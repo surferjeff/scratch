@@ -42,7 +42,7 @@ function enumerateMoves(board) {
  * @returns An array of possible moves with the given board state.
  *          Each move is [direction {string}, step {number}, letter {string}].
  * 
- * direction and step are redundant.  One can always be determined by the other.
+ * direction and step are redundant.  One can always be determined by the other,
  * but returning both is convenient.
  */
 function enumerateMovesFrom(board, dotIndex) {
