@@ -8,6 +8,9 @@ class Doc {
     // Counts incoming pointers.  This object gets deleted when ref_count
     // drops to zero.
     int ref_count;
+  public:
+    // Gets the object from the cache or reads it from the file.
+    Object* lookup(unsigned object_number);
 };
 
 class Object {
