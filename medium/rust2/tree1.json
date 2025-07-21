@@ -1,0 +1,51 @@
+[
+  {
+    "id": "john-doe",
+    "name": "John Doe",
+    "birthday": [1970, 5, 15],
+    "father": null,
+    "mother": null
+  },
+  {
+    "id": "jane-smith",
+    "name": "Jane Smith",
+    "birthday": [1972, 8, 20],
+    "father": null,
+    "mother": null
+  },
+  {
+    "id": "michael-doe",
+    "name": "Michael Doe",
+    "birthday": [1995, 3, 10],
+    "father": "john-doe",
+    "mother": "jane-smith"
+  },
+  {
+    "id": "emily-doe",
+    "name": "Emily Doe",
+    "birthday": [1998, 11, 25],
+    "father": "john-doe",
+    "mother": "jane-smith"
+  },
+  {
+    "id": "david-jones",
+    "name": "David Jones",
+    "birthday": [1968, 1, 30],
+    "father": null,
+    "mother": null
+  },
+  {
+    "id": "sarah-williams",
+    "name": "Sarah Williams",
+    "birthday": [1970, 7, 7],
+    "father": null,
+    "mother": null
+  },
+  {
+    "id": "lisa-jones",
+    "name": "Lisa Jones",
+    "birthday": [2000, 2, 14],
+    "father": "david-jones",
+    "mother": "sarah-williams"
+  }
+]

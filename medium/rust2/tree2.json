@@ -1,0 +1,73 @@
+obj 0
+  {
+    "name": "John Doe",
+    "birthday": [1970, 5, 15],
+    "father": null,
+    "mother": null
+  }
+endobj
+
+obj 1
+  {
+    "name": "Jane Smith",
+    "birthday": [1972, 8, 20],
+    "father": null,
+    "mother": null
+  }
+endobj
+
+obj 2
+  {
+    "name": "Michael Doe",
+    "birthday": [1995, 3, 10],
+    "father": R-0,
+    "mother": R-1
+  }
+endobj
+
+obj 3
+  {
+    "name": "Emily Doe",
+    "birthday": [1998, 11, 25],
+    "father": R-0,
+    "mother": R-1
+  }
+endobj
+
+obj 4
+  {
+    "name": "David Jones",
+    "birthday": [1968, 1, 30],
+    "father": null,
+    "mother": null
+  }
+endobj
+
+obj 5
+  {
+    "name": "Sarah Williams",
+    "birthday": [1970, 7, 7],
+    "father": null,
+    "mother": null
+  }
+endobj
+
+obj 6
+  {
+    "name": "Lisa Jones",
+    "birthday": [2000, 2, 14],
+    "father": R-4,
+    "mother": R-5
+  }
+endobj
+
+lookup-table
+// obj line-number
+     0 01
+     1 10
+     2 19
+     3 28
+     4 37
+     5 46
+     6 55
+end-lookup-table
